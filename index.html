@@ -1241,15 +1241,21 @@
     if (isDiscovering) return API_BASE;
     isDiscovering = true;
     try {
-      // 1. Only probe localhost if opened via file:// or localhost
-      if (!window.location.protocol.startsWith('http') || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        if (await probeCandidateServer('http://localhost:3030')) {
-          API_BASE = 'http://localhost:3030';
-          localStorage.setItem('vidgenius_last_server', API_BASE);
-          isDiscovering = false;
-          return API_BASE;
+      // 1. Fast 500ms probe for local Mac server (instant 0ms latency when opened on the Mac itself!)
+      try {
+        const localRes = await fetchWithTimeout('http://localhost:3030/api/info', {}, 500);
+        if (localRes.ok) {
+          const d = await localRes.json();
+          if (d && d.ok) {
+            const changed = API_BASE !== 'http://localhost:3030';
+            API_BASE = 'http://localhost:3030';
+            localStorage.setItem('vidgenius_last_server', API_BASE);
+            isDiscovering = false;
+            if (changed && typeof renderStudio === 'function' && allJobs.length > 0) renderStudio();
+            return API_BASE;
+          }
         }
-      }
+      } catch {}
 
       const candidates = [];
       const addParsedCandidates = (parsed) => {
