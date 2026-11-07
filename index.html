@@ -2047,6 +2047,7 @@
   }
 
   let latestLhrUrl = '';
+  let lastRenderedApiBase = '';
   async function refreshAllJobs() {
     try {
       const targetInfoUrl = apiUrl('/api/info');
@@ -2098,14 +2099,15 @@
       }
 
       const hasPending = incoming.some(j => j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued');
-      const prevSig = JSON.stringify(allJobs.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
-      const nextSig = JSON.stringify(incoming.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
+      const prevSig = lastRenderedApiBase + '|' + JSON.stringify(allJobs.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
+      const nextSig = API_BASE + '|' + JSON.stringify(incoming.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
 
       allJobs = incoming;
       try {
         localStorage.setItem('vidgenius_cached_jobs', JSON.stringify(allJobs.slice(0, 30)));
       } catch {}
       if (prevSig !== nextSig) {
+        lastRenderedApiBase = API_BASE;
         renderStudio();
       } else if (hasPending) {
         updatePendingCardsInPlace();
