@@ -1791,6 +1791,8 @@
   }
 
   function openLightbox(url, isImage, jobId) {
+    // Stop any banner video first so audio doesn't conflict
+    closeJustFinishedBanner();
     currentLightboxJobId = jobId || null;
     const fullUrl = apiUrl(url);
     const modal = document.getElementById('lightboxModal');
@@ -1812,8 +1814,40 @@
   function closeLightbox() {
     currentLightboxJobId = null;
     const modal = document.getElementById('lightboxModal');
-    document.getElementById('lightboxContent').innerHTML = '';
-    modal.classList.remove('open');
+    if (modal) {
+      // Forcibly stop, mute, and unload all video elements so no sound continues
+      const vids = modal.querySelectorAll('video');
+      vids.forEach(v => {
+        try {
+          v.pause();
+          v.muted = true;
+          v.currentTime = 0;
+          v.removeAttribute('src');
+          v.load();
+        } catch (e) {}
+      });
+      modal.classList.remove('open');
+    }
+    const content = document.getElementById('lightboxContent');
+    if (content) content.innerHTML = '';
+  }
+
+  function closeJustFinishedBanner() {
+    const box = document.getElementById('justFinishedBanner');
+    if (!box) return;
+    // Forcibly stop, mute, and unload all video elements so no sound/music continues
+    const vids = box.querySelectorAll('video');
+    vids.forEach(v => {
+      try {
+        v.pause();
+        v.muted = true;
+        v.currentTime = 0;
+        v.removeAttribute('src');
+        v.load();
+      } catch (e) {}
+    });
+    box.innerHTML = '';
+    box.style.display = 'none';
   }
 
   async function deleteCreation(jobId) {
