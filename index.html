@@ -2239,6 +2239,7 @@
   }
 
   let knownCompletedIds = new Set(allJobs.filter(j => j.status === 'completed').map(j => j.id));
+  let isInitialJobsPoll = true;
 
   function applyIncomingJobsUpdate(incoming, incomingCredits) {
     if (typeof incomingCredits === 'number') {
@@ -2247,17 +2248,27 @@
       document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
     }
 
-    for (const job of incoming) {
-      if (job.status === 'completed' && job.resultUrl) {
-        if (!knownCompletedIds.has(job.id)) {
+    if (isInitialJobsPoll) {
+      isInitialJobsPoll = false;
+      // On first load, mark all existing completed jobs as already known so old videos do NOT pop up or blast sound on page load!
+      for (const job of incoming) {
+        if (job.status === 'completed' && job.resultUrl) {
           knownCompletedIds.add(job.id);
-          // Show the newly finished video immediately right below Start Creating!
-          showJustFinishedStage(job);
-          if (trackedGeneratingIds.has(job.id)) {
-            trackedGeneratingIds.delete(job.id);
-            triggerAutoDownload(job);
-          } else {
-            showToast('🎉 ဗီဒီယိုအသစ် ရောက်ရှိလာပါပြီ! ချက်ချင်း ကြည့်ရှုနိုင်ပါပြီ။');
+        }
+      }
+    } else {
+      for (const job of incoming) {
+        if (job.status === 'completed' && job.resultUrl) {
+          if (!knownCompletedIds.has(job.id)) {
+            knownCompletedIds.add(job.id);
+            // Show the newly finished video immediately right below Start Creating!
+            showJustFinishedStage(job);
+            if (trackedGeneratingIds.has(job.id)) {
+              trackedGeneratingIds.delete(job.id);
+              triggerAutoDownload(job);
+            } else {
+              showToast('🎉 ဗီဒီယိုအသစ် ရောက်ရှိလာပါပြီ! ချက်ချင်း ကြည့်ရှုနိုင်ပါပြီ။');
+            }
           }
         }
       }
