@@ -1932,6 +1932,8 @@
 
   function showJustFinishedStage(job) {
     if (!job || !job.resultUrl) return;
+    // Stop any existing playing video & audio first!
+    closeJustFinishedBanner();
     lastJustFinishedJobId = job.id;
     const box = document.getElementById('justFinishedBanner');
     if (!box) return;
@@ -1951,14 +1953,14 @@
             ${job.modelLabel || 'Google Flow AI'} · ${job.durationSeconds || 8}s · ${job.resolution || '720p'} · ${job.aspectRatio || '9:16'}
           </span>
         </div>
-        <button onclick="document.getElementById('justFinishedBanner').style.display='none'" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; width:32px; height:32px; border-radius:999px; cursor:pointer; font-weight:700;">✕</button>
+        <button onclick="closeJustFinishedBanner()" style="background:#fee2e2; color:#ef4444; border:1px solid #fecaca; width:34px; height:34px; border-radius:999px; cursor:pointer; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center;" title="ပိတ်မည် / ရပ်မည် (Stop Video)">✕</button>
       </div>
 
       <!-- Large Centered Real Video Player Right inside the Tool -->
       <div style="width:100%; background:#09090b; border-radius:18px; overflow:hidden; display:flex; align-items:center; justify-content:center; max-height:${isLandscape ? '380px' : '460px'}; box-shadow:0 12px 32px rgba(15,23,42,0.18);">
         ${isImg
           ? `<img src="${mediaUrl}" style="max-height:440px; max-width:100%; object-fit:contain;" />`
-          : `<video src="${mediaUrl}" poster="${thumbUrl}" controls autoplay loop playsinline style="max-height:${isLandscape ? '380px' : '460px'}; max-width:100%; border-radius:14px;"></video>`
+          : `<video id="justFinishedVideo" src="${mediaUrl}" poster="${thumbUrl}" controls autoplay loop playsinline style="max-height:${isLandscape ? '380px' : '460px'}; max-width:100%; border-radius:14px;"></video>`
         }
       </div>
 
@@ -1967,6 +1969,9 @@
           Prompt: "${job.prompt || ''}"
         </div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <button onclick="closeJustFinishedBanner()" class="btn-card-action" style="height:42px; padding:0 18px; border-radius:999px; background:#f1f5f9; color:#ef4444; border:1px solid #fecaca; font-weight:700;">
+            ⏹ ပိတ်မည် / အသံရပ်မည်
+          </button>
           <button onclick="openLightbox('${mediaUrl}', ${isImg}, '${job.id}')" class="btn-card-action" style="height:42px; padding:0 16px; border-radius:999px;">
             ⛶ Fullscreen ကြည့်မည်
           </button>
@@ -1976,6 +1981,7 @@
         </div>
       </div>
     `;
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   function updateLiveRenderBanner() {
