@@ -2401,6 +2401,14 @@
     }
   }
 
+  // Keyboard shortcut: Pressing Escape stops and closes any playing video/audio
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeLightbox();
+      closeJustFinishedBanner();
+    }
+  });
+
   // Init (0.00s Instant Render from Cache + 0.01s SSE + 1.0s Fast Live Polling)
   document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
   populateControlsForMode();
