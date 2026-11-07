@@ -1670,23 +1670,52 @@
     const promptBox = document.getElementById('promptInput');
     const prompt = promptBox.value.trim() || 'Cinematic smooth movement, natural lighting, photorealistic';
     const model = document.getElementById('modelSelect').value;
+    const modelSel = document.getElementById('modelSelect');
+    const modelLabel = modelSel.options[modelSel.selectedIndex]?.textContent || 'Omni 1.2 Flash 🔊';
     const videoType = document.getElementById('videoTypeSelect').value;
     const ratio = document.getElementById('ratioSelect').value;
     const dur = Number(document.getElementById('durationSelect').value) || 8;
     const qual = document.getElementById('qualitySelect').value;
     const batch = Number(document.getElementById('batchSelect').value) || 1;
     const cost = computeCurrentCost();
+    const previewImgSrc = document.getElementById('previewImg')?.src || '';
 
-    showToast(currentMode === 'image' ? '✨ Connecting to Google Flow AI...' : '🎬 Connecting to Google Flow AI...');
+    // 0.00s Optimistic Instant Feedback: Show Live Progress Banner & Pending Card immediately!
+    const optimisticId = 'opt_' + Date.now();
+    const optimisticJob = {
+      id: optimisticId,
+      taskType: currentMode,
+      subMode: currentMode === 'image' ? 'text-to-image' : videoType,
+      model,
+      modelLabel,
+      prompt,
+      aspectRatio: ratio,
+      durationSeconds: dur,
+      resolution: qual,
+      imageCount: batch,
+      creditCost: cost,
+      inputImageUrl: previewImgSrc && previewImgSrc.startsWith('data:') ? previewImgSrc : '',
+      status: 'waiting_mac_flow',
+      progress: 5,
+      message: 'Flow AI သို့ Prompt နှင့် Setting ပေးပို့နေပါသည်...',
+      createdAt: Date.now()
+    };
+    allJobs = [optimisticJob, ...allJobs];
+    renderStudio();
+    document.getElementById('liveRenderBanner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showToast(currentMode === 'image' ? '✨ Google Flow AI သို့ ပေးပို့နေပါသည်...' : '🎬 Google Flow AI သို့ ပေးပို့နေပါသည် · ခဏစောင့်ပေးပါ...');
 
     // Build ordered list of candidate backend servers (no custom headers -> zero CORS preflight!)
     let serversToTry = IS_STATIC_HOST
       ? Array.from(new Set([API_BASE, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)))
       : [''];
 
-    // Put .lhr.life servers first because they have 0% CORS preflight/interstitial issues on mobile browsers
+    // Put localhost or .lhr.life servers first because they have 0% CORS preflight/interstitial issues
     if (IS_STATIC_HOST) {
-      serversToTry.sort((a, b) => (b.includes('.lhr.life') ? 1 : 0) - (a.includes('.lhr.life') ? 1 : 0));
+      serversToTry.sort((a, b) => {
+        const score = (u) => (u.includes('localhost') ? 2 : u.includes('.lhr.life') ? 1 : 0);
+        return score(b) - score(a);
+      });
     }
 
     let lastErr = null;
@@ -1694,7 +1723,10 @@
       if (pass === 1 && IS_STATIC_HOST) {
         const discovered = await discoverLiveTunnelFromBeacon();
         serversToTry = Array.from(new Set([discovered, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)));
-        serversToTry.sort((a, b) => (b.includes('.lhr.life') ? 1 : 0) - (a.includes('.lhr.life') ? 1 : 0));
+        serversToTry.sort((a, b) => {
+          const score = (u) => (u.includes('localhost') ? 2 : u.includes('.lhr.life') ? 1 : 0);
+          return score(b) - score(a);
+        });
       }
       for (const base of serversToTry) {
         try {
@@ -1712,11 +1744,12 @@
             localStorage.setItem('vidgenius_last_server', base);
           }
           trackedGeneratingIds.add(data.jobId);
+          // Replace optimistic ID in-place until refreshAllJobs fetches full server state
+          optimisticJob.id = data.jobId;
           promptBox.value = '';
           clearPhoto();
-          showToast(currentMode === 'image' ? '✨ Generating on Google Flow AI...' : '🎬 Rendering Video on Google Flow AI...');
+          showToast(currentMode === 'image' ? '✨ Google Flow AI တွင် ပုံထုတ်နေပါပြီ!' : '🎬 Google Flow AI တွင် ဗီဒီယို ထုတ်နေပါပြီ!');
           await refreshAllJobs();
-          document.getElementById('creationsSection').scrollIntoView({ behavior: 'smooth' });
           return;
         } catch (err) {
           lastErr = err;
@@ -1724,6 +1757,8 @@
       }
     }
 
+    allJobs = allJobs.filter(j => j.id !== optimisticId);
+    renderStudio();
     showToast('Error: ' + (lastErr ? lastErr.message : 'Connection failed'));
   }
 
