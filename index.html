@@ -1917,13 +1917,13 @@
     else if (pct >= 15) stageStep = 2;
 
     const stageLabel = stageStep === 1
-      ? 'Flow AI သို့ Prompt နှင့် Setting ပေးပို့နေပါသည်...'
+      ? (isImg ? 'Prompt နှင့် Setting စစ်ဆေးနေပါသည်...' : 'Flow AI သို့ Prompt နှင့် Setting ပေးပို့နေပါသည်...')
       : stageStep === 2
-      ? (j.message && j.message.includes('Flow AI') ? j.message : 'Google Flow AI တွင် ဗီဒီယို ထုတ်နေပါသည်...')
-      : 'Flow AI ထုတ်ပြီးပါပြီ! သင့်ထံသို့ ဗီဒီယို ဒေါင်းလုဒ်ပို့ပေးနေပါသည်...';
+      ? (isImg ? (j.message || 'AI Model ဖြင့် ဓာတ်ပုံ ဖန်တီးနေပါသည်...') : (j.message && j.message.includes('Flow AI') ? j.message : 'Google Flow AI တွင် ဗီဒီယို ထုတ်နေပါသည်...'))
+      : (isImg ? 'ဓာတ်ပုံ ထုတ်ပြီးပါပြီ! သင့်ထံသို့ ပို့ပေးနေပါသည်...' : 'Flow AI ထုတ်ပြီးပါပြီ! သင့်ထံသို့ ဗီဒီယို ဒေါင်းလုဒ်ပို့ပေးနေပါသည်...');
 
     const remainText = pct >= 88
-      ? `✨ Flow AI ထုတ်ပြီးပါပြီ! နောက် ~${remainSec} စက္ကန့်အတွင်း ရပါမည်`
+      ? `✨ ${isImg ? 'ဓာတ်ပုံ' : 'Flow AI'} ထုတ်ပြီးပါပြီ! နောက် ~${remainSec} စက္ကန့်အတွင်း ရပါမည်`
       : qIdx > 0
       ? `⏳ အလှည့်စောင့်ဆိုင်းနေသည် (#${qIdx + 1}) · နောက် ~${remainSec} စက္ကန့်အတွင်း ရပါမည်`
       : `⏳ နောက် ~${remainSec} စက္ကန့်အတွင်း ရပါမည် (စုစုပေါင်း ~${estTotalSec}s)`;
@@ -1950,16 +1950,16 @@
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <span style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-size:12px; font-weight:800; padding:5px 12px; border-radius:999px;">
-            ✨ ဗီဒီယို Create လုပ်ပြီးပါပြီ!
+            ✨ ${isImg ? 'ဓာတ်ပုံ' : 'ဗီဒီယို'} Create လုပ်ပြီးပါပြီ!
           </span>
           <span style="font-size:14px; font-weight:800; color:#1e293b;">
-            ${job.modelLabel || 'Google Flow AI'} · ${job.durationSeconds || 8}s · ${job.resolution || '720p'} · ${job.aspectRatio || '9:16'}
+            ${job.modelLabel || (isImg ? 'Nano Banana Pro' : 'Google Flow AI')} · ${isImg ? (job.resolution || 'High') : (job.durationSeconds || 8) + 's'} · ${isImg ? '' : (job.resolution || '720p') + ' · '} ${job.aspectRatio || '9:16'}
           </span>
         </div>
-        <button onclick="closeJustFinishedBanner()" style="background:#fee2e2; color:#ef4444; border:1px solid #fecaca; width:34px; height:34px; border-radius:999px; cursor:pointer; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center;" title="ပိတ်မည် / ရပ်မည် (Stop Video)">✕</button>
+        <button onclick="closeJustFinishedBanner()" style="background:#fee2e2; color:#ef4444; border:1px solid #fecaca; width:34px; height:34px; border-radius:999px; cursor:pointer; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center;" title="ပိတ်မည် / ရပ်မည်">✕</button>
       </div>
 
-      <!-- Large Centered Real Video Player Right inside the Tool -->
+      <!-- Large Centered Real Video / Image Player Right inside the Tool -->
       <div style="width:100%; background:#09090b; border-radius:18px; overflow:hidden; display:flex; align-items:center; justify-content:center; max-height:${isLandscape ? '380px' : '460px'}; box-shadow:0 12px 32px rgba(15,23,42,0.18);">
         ${isImg
           ? `<img src="${mediaUrl}" style="max-height:440px; max-width:100%; object-fit:contain;" />`
@@ -1979,7 +1979,7 @@
             ⛶ Fullscreen ကြည့်မည်
           </button>
           <a href="${dlUrl}" download="vidgenius_${job.id}.${isImg ? 'jpg' : 'mp4'}" class="btn-gradient" style="height:42px; padding:0 20px; border-radius:999px; text-decoration:none;">
-            ⬇ Download Video
+            ⬇ Download ${isImg ? 'Photo' : 'Video'}
           </a>
         </div>
       </div>
