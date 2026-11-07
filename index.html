@@ -1751,8 +1751,7 @@
       }
       renderStudio();
       await fetch(apiUrl('/api/delete/' + jobId), {
-        method: 'POST',
-        headers: { 'X-Pin': userPin, 'X-Pinggy-No-Screen': 'true' }
+        method: 'POST'
       });
       showToast('🗑️ ဗီဒီယို/ဓာတ်ပုံကို ဖျက်ပြီးပါပြီ (Deleted!)');
     } catch (err) {
