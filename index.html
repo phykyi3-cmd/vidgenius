@@ -2126,7 +2126,11 @@
       const pctEl = document.getElementById('pct-' + j.id);
       const lblEl = document.getElementById('lbl-' + j.id);
       const barEl = document.getElementById('bar-' + j.id);
+      const fanPctEl = document.getElementById('fan-pct-' + j.id);
+      const fanRemEl = document.getElementById('fan-rem-' + j.id);
       if (pctEl) pctEl.textContent = info.pct + '%';
+      if (fanPctEl) fanPctEl.textContent = info.pct + '%';
+      if (fanRemEl) fanRemEl.textContent = `~${info.remainSec}s အတွင်း ရမည်`;
       if (lblEl) {
         lblEl.innerHTML = `
           <strong>ခဏစောင့်ပေးပါ...</strong><br/>
@@ -2178,32 +2182,7 @@
         document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
       }
       const incoming = data.recentJobs || [];
-
-      for (const job of incoming) {
-        if (
-          trackedGeneratingIds.has(job.id) &&
-          job.status === 'completed' &&
-          job.resultUrl
-        ) {
-          trackedGeneratingIds.delete(job.id);
-          triggerAutoDownload(job);
-        }
-      }
-
-      const hasPending = incoming.some(j => j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued');
-      const prevSig = lastRenderedApiBase + '|' + JSON.stringify(allJobs.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
-      const nextSig = API_BASE + '|' + JSON.stringify(incoming.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
-
-      allJobs = incoming;
-      try {
-        localStorage.setItem('vidgenius_cached_jobs', JSON.stringify(allJobs.slice(0, 30)));
-      } catch {}
-      if (prevSig !== nextSig) {
-        lastRenderedApiBase = API_BASE;
-        renderStudio();
-      } else if (hasPending) {
-        updatePendingCardsInPlace();
-      }
+      applyIncomingJobsUpdate(incoming, data.creditsRemaining);
     } catch (e) {
       // If primary tunnel switched, automatically discover the new live tunnel from beacon
       discoverLiveTunnelFromBeacon();
@@ -2212,6 +2191,68 @@
         API_BASE = FALLBACK_SERVERS[(idx + 1) % FALLBACK_SERVERS.length];
       }
     }
+  }
+
+  let knownCompletedIds = new Set(allJobs.filter(j => j.status === 'completed').map(j => j.id));
+
+  function applyIncomingJobsUpdate(incoming, incomingCredits) {
+    if (typeof incomingCredits === 'number') {
+      creditsRemaining = incomingCredits;
+      localStorage.setItem('vidgenius_cached_credits', String(creditsRemaining));
+      document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
+    }
+
+    for (const job of incoming) {
+      if (job.status === 'completed' && job.resultUrl) {
+        if (!knownCompletedIds.has(job.id)) {
+          knownCompletedIds.add(job.id);
+          // Show the newly finished video immediately right below Start Creating!
+          showJustFinishedStage(job);
+          if (trackedGeneratingIds.has(job.id)) {
+            trackedGeneratingIds.delete(job.id);
+            triggerAutoDownload(job);
+          } else {
+            showToast('🎉 ဗီဒီယိုအသစ် ရောက်ရှိလာပါပြီ! ချက်ချင်း ကြည့်ရှုနိုင်ပါပြီ။');
+          }
+        }
+      }
+    }
+
+    const hasPending = incoming.some(j => j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued');
+    const prevSig = lastRenderedApiBase + '|' + JSON.stringify(allJobs.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
+    const nextSig = API_BASE + '|' + JSON.stringify(incoming.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
+
+    allJobs = incoming;
+    try {
+      localStorage.setItem('vidgenius_cached_jobs', JSON.stringify(allJobs.slice(0, 30)));
+    } catch {}
+    if (prevSig !== nextSig) {
+      lastRenderedApiBase = API_BASE;
+      renderStudio();
+    } else if (hasPending) {
+      updatePendingCardsInPlace();
+    }
+  }
+
+  let liveEventSource = null;
+  let liveEventSourceBase = '';
+  function ensureLiveSseConnected() {
+    const targetUrl = apiUrl('/api/events');
+    if (!targetUrl || targetUrl.includes('pinggy')) return;
+    if (liveEventSource && liveEventSourceBase === API_BASE && liveEventSource.readyState !== 2) return;
+    try {
+      if (liveEventSource) liveEventSource.close();
+      liveEventSourceBase = API_BASE;
+      liveEventSource = new EventSource(targetUrl);
+      liveEventSource.onmessage = (evt) => {
+        try {
+          const d = JSON.parse(evt.data);
+          if (Array.isArray(d.recentJobs)) {
+            applyIncomingJobsUpdate(d.recentJobs, d.creditsRemaining);
+          }
+        } catch {}
+      };
+    } catch {}
   }
 
   // PWA & 1-Click Instant Standalone Desktop App Download (Client-Side Blob — 0% Blocked!)
