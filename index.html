@@ -1669,6 +1669,9 @@
 
   async function confirmAndSubmit() {
     closeConfirmModal();
+    // Stop and silence any previously playing video & audio immediately!
+    closeJustFinishedBanner();
+    closeLightbox();
 
     const promptBox = document.getElementById('promptInput');
     const prompt = promptBox.value.trim() || 'Cinematic smooth movement, natural lighting, photorealistic';
