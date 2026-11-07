@@ -1,0 +1,1950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>VIDGENIUS · All-in-One AI Image & Video Studio</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" type="image/svg+xml" href="/app-icon.svg" />
+  <link rel="apple-touch-icon" href="/app-icon.svg" />
+  <meta name="theme-color" content="#7c3aed" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="VIDGENIUS" />
+  <style>
+    :root {
+      --bg: #f8f7fc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      --border: #e2e8f0;
+      --pill-border: #e5e7eb;
+      --purple: #7c3aed;
+      --violet: #8b5cf6;
+      --pink: #d946ef;
+      --grad-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+      --grad-text: linear-gradient(90deg, #7c3aed 0%, #a855f7 55%, #c084fc 100%);
+      --shadow-card: 0 24px 60px -12px rgba(99, 102, 241, 0.14), 0 8px 24px -6px rgba(15, 23, 42, 0.06);
+      --shadow-pill: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text-main);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Geometric Faceted Background (Matches VIDGENIUS Reference) */
+    .studio-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.96) 0%, rgba(243, 238, 255, 0.72) 48%, rgba(232, 225, 255, 0.55) 100%);
+      overflow: hidden;
+    }
+
+    .geo-facet-left {
+      position: absolute;
+      top: 12%;
+      left: -8%;
+      width: 48vw;
+      height: 58vh;
+      background: linear-gradient(135deg, rgba(167, 139, 250, 0.16) 0%, rgba(196, 181, 253, 0.04) 100%);
+      clip-path: polygon(0 20%, 100% 0, 75% 100%, 0 85%);
+    }
+
+    .geo-facet-right {
+      position: absolute;
+      top: 10%;
+      right: -8%;
+      width: 48vw;
+      height: 58vh;
+      background: linear-gradient(225deg, rgba(217, 70, 239, 0.13) 0%, rgba(129, 140, 248, 0.05) 100%);
+      clip-path: polygon(25% 0, 100% 20%, 100% 85%, 0 100%);
+    }
+
+    .geo-circle-center {
+      position: absolute;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(760px, 92vw);
+      height: min(760px, 92vw);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(248,246,255,0.5) 70%, transparent 100%);
+      box-shadow: inset 0 0 80px rgba(139, 92, 246, 0.06);
+    }
+
+    .app-wrapper {
+      position: relative;
+      z-index: 2;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 24px 90px;
+    }
+
+    /* Top Header Navigation (Exact VIDGENIUS Style) */
+    .top-nav {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: 0.6px;
+    }
+
+    .brand-logo svg {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(10px);
+      padding: 8px 22px;
+      border-radius: 999px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+
+    .nav-link {
+      background: none;
+      border: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: color 0.15s;
+      padding: 4px 2px;
+    }
+
+    .nav-link.active, .nav-link:hover {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .credit-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #4f46e5;
+      box-shadow: var(--shadow-pill);
+    }
+
+    .btn-gradient {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--grad-primary);
+      color: #ffffff;
+      border: none;
+      padding: 11px 22px;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 8px 20px -4px rgba(139, 92, 246, 0.5);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .btn-gradient:hover, .btn-gradient:active {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px -4px rgba(139, 92, 246, 0.65);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      text-align: center;
+      padding: 28px 0 26px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(90deg, rgba(237, 233, 254, 0.95), rgba(250, 232, 255, 0.95));
+      border: 1px solid rgba(196, 181, 253, 0.7);
+      color: #4c1d95;
+      padding: 8px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.12);
+    }
+
+    .hero-title {
+      font-size: clamp(32px, 5vw, 54px);
+      font-weight: 800;
+      line-height: 1.14;
+      letter-spacing: -0.02em;
+      color: #09090b;
+      margin-bottom: 14px;
+    }
+
+    .hero-title .grad {
+      background: var(--grad-text);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-sub {
+      font-size: 15px;
+      color: var(--text-sub);
+      max-width: 580px;
+      margin: 0 auto 28px;
+      font-weight: 400;
+    }
+
+    /* Central Studio Prompt Card (Exact VIDGENIUS Floating Card) */
+    .studio-card {
+      max-width: 780px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border-radius: 26px;
+      padding: 22px 24px 18px;
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      text-align: left;
+      position: relative;
+      z-index: 10;
+    }
+
+    /* Top Input Row */
+    .prompt-input-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+
+    .sparkle-prefix {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #7c3aed;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .prompt-textarea {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 15px;
+      color: var(--text-main);
+      font-family: inherit;
+      resize: none;
+      min-height: 46px;
+      outline: none;
+      line-height: 1.45;
+    }
+
+    .prompt-textarea::placeholder {
+      color: #94a3b8;
+    }
+
+    /* Reference Photo Thumbnail Pill */
+    .ref-photo-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .btn-upload-ref {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      color: #475569;
+      padding: 7px 13px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-upload-ref:hover {
+      border-color: var(--violet);
+      color: var(--purple);
+      background: #f5f3ff;
+    }
+
+    .ref-thumb-chip {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #f5f3ff;
+      border: 1px solid #ddd6fe;
+      padding: 4px 10px 4px 4px;
+      border-radius: 12px;
+    }
+
+    .ref-thumb-chip.visible {
+      display: inline-flex;
+    }
+
+    .ref-thumb-chip img {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+
+    .ref-remove-btn {
+      border: none;
+      background: #ede9fe;
+      color: #5b21b6;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    /* Quick Prompt Suggestion Chips */
+    .quick-chips-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 0 6px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .quick-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+
+    .q-chip {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #475569;
+      padding: 4px 11px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .q-chip:hover {
+      background: #f5f3ff;
+      border-color: #c4b5fd;
+      color: #6d28d9;
+    }
+
+    /* Bottom Controls Toolbar inside Studio Card */
+    .studio-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-top: 10px;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    /* Professional Pill Buttons with SVG Icons */
+    .tool-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      height: 38px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid var(--pill-border);
+      color: #334155;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow-pill);
+      transition: all 0.15s;
+    }
+
+    .tool-pill svg {
+      width: 15px;
+      height: 15px;
+      color: #475569;
+      flex-shrink: 0;
+    }
+
+    .tool-pill:hover {
+      border-color: #cbd5e1;
+      background: #f8fafc;
+    }
+
+    .tool-pill.active {
+      background: #f5f3ff;
+      border-color: #8b5cf6;
+      color: #6d28d9;
+    }
+
+    .tool-pill.active svg {
+      color: #7c3aed;
+    }
+
+    /* Clean Styled Select Pills */
+    .select-pill-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .select-pill-icon {
+      position: absolute;
+      left: 12px;
+      pointer-events: none;
+      width: 15px;
+      height: 15px;
+      color: #475569;
+    }
+
+    select.select-pill {
+      appearance: none;
+      -webkit-appearance: none;
+      height: 38px;
+      padding: 0 28px 0 34px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid var(--pill-border);
+      color: #334155;
+      font-size: 12.5px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: var(--shadow-pill);
+      outline: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 11px center;
+    }
+
+    select.select-pill:hover, select.select-pill:focus {
+      border-color: #a855f7;
+    }
+
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .live-cost-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #f5f3ff;
+      color: #6d28d9;
+      border: 1px solid #ddd6fe;
+    }
+
+    .live-cost-tag.free {
+      background: #ecfdf5;
+      color: #059669;
+      border-color: #a7f3d0;
+    }
+
+    /* Fanned Showcase Cards (Matches Bottom of VIDGENIUS Screenshot) */
+    .showcase-fan {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 18px;
+      margin: 38px auto 36px;
+      padding: 10px 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .showcase-fan::-webkit-scrollbar {
+      display: none;
+    }
+
+    .fan-card {
+      width: 175px;
+      height: 145px;
+      border-radius: 22px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.12);
+      border: 3px solid #ffffff;
+      flex-shrink: 0;
+      position: relative;
+      transition: transform 0.25s ease;
+      cursor: pointer;
+    }
+
+    .fan-card:nth-child(1) { transform: rotate(-6deg) translateY(12px); }
+    .fan-card:nth-child(2) { transform: rotate(-3deg) translateY(4px); }
+    .fan-card:nth-child(3) { transform: rotate(0deg) translateY(-4px); width: 195px; height: 158px; }
+    .fan-card:nth-child(4) { transform: rotate(3deg) translateY(4px); }
+    .fan-card:nth-child(5) { transform: rotate(6deg) translateY(12px); }
+
+    .fan-card:hover {
+      transform: rotate(0deg) scale(1.06) !important;
+      z-index: 5;
+    }
+
+    .fan-card video, .fan-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Studio Creations Grid Section */
+    .creations-section {
+      margin-top: 18px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .creations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+      gap: 20px;
+    }
+
+    .creation-card {
+      background: #ffffff;
+      border-radius: 22px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.18s ease;
+    }
+
+    .creation-card:hover {
+      transform: translateY(-3px);
+    }
+
+    .creation-media-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      background: #0f172a;
+      overflow: hidden;
+    }
+
+    .creation-media-wrap.landscape {
+      aspect-ratio: 16 / 9;
+    }
+
+    .creation-media-wrap.square {
+      aspect-ratio: 1 / 1;
+    }
+
+    .creation-media-wrap video,
+    .creation-media-wrap > img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 4-Image Batch Grid inside Creation Card */
+    .batch-4-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 3px;
+      width: 100%;
+      height: 100%;
+      background: #0f172a;
+    }
+
+    .batch-4-grid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+    /* Live Rendering State inside Creation Card */
+    .rendering-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(30, 27, 75, 0.88), rgba(88, 28, 135, 0.88));
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .render-spinner {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 3.5px solid rgba(255, 255, 255, 0.2);
+      border-top-color: #c084fc;
+      border-right-color: #38bdf8;
+      animation: spin 0.9s linear infinite;
+      margin-bottom: 12px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .render-pct {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .render-label {
+      font-size: 12.5px;
+      color: #e2e8f0;
+      line-height: 1.4;
+    }
+
+    .render-bar {
+      width: 82%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .render-bar-fill {
+      height: 100%;
+      background: var(--grad-primary);
+      transition: width 0.4s ease;
+    }
+
+    .creation-info {
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .creation-badges {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      color: #6d28d9;
+    }
+
+    .creation-prompt {
+      font-size: 12.5px;
+      color: #334155;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      line-height: 1.4;
+    }
+
+    .creation-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn-card-action {
+      flex: 1;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: #1e293b;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .btn-card-action.primary {
+      background: var(--grad-primary);
+      color: #fff;
+      border: none;
+    }
+
+    .btn-card-action.danger {
+      flex: 0 0 auto;
+      padding: 0 11px;
+      background: #fef2f2;
+      color: #dc2626;
+      border-color: #fecaca;
+      transition: all 0.15s ease;
+    }
+
+    .btn-card-action.danger:hover {
+      background: #dc2626;
+      color: #ffffff;
+      border-color: #dc2626;
+    }
+
+    /* Confirmation Modal (Credit Cost & Specs Verification) */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .confirm-modal {
+      width: min(440px, 100%);
+      background: #ffffff;
+      border-radius: 26px;
+      padding: 26px;
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.25);
+      border: 1px solid var(--border);
+    }
+
+    .confirm-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .confirm-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: #f5f3ff;
+      color: #7c3aed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .confirm-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .confirm-sub {
+      font-size: 12.5px;
+      color: var(--text-sub);
+    }
+
+    .spec-table {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .spec-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .spec-label {
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+
+    .spec-val {
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .spec-row.highlight {
+      border-top: 1px dashed #cbd5e1;
+      padding-top: 10px;
+      font-size: 14px;
+    }
+
+    .spec-row.highlight .spec-val {
+      color: #7c3aed;
+      font-size: 15px;
+    }
+
+    .confirm-btns {
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 10px;
+    }
+
+    .btn-cancel {
+      height: 44px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: #475569;
+      font-size: 13.5px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Fullscreen Media Lightbox */
+    .lightbox-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 9, 11, 0.92);
+      backdrop-filter: blur(12px);
+      z-index: 150;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .lightbox-backdrop.open {
+      display: flex;
+    }
+
+    .lightbox-media {
+      max-height: 76vh;
+      max-width: 92vw;
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0f172a;
+      color: #fff;
+      padding: 11px 22px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 250;
+      display: none;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+      .studio-card {
+        padding: 16px;
+      }
+      .toolbar-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="studio-bg">
+  <div class="geo-facet-left"></div>
+  <div class="geo-facet-right"></div>
+  <div class="geo-circle-center"></div>
+</div>
+
+<div class="app-wrapper">
+  <!-- Top Header Navigation -->
+  <header class="top-nav">
+    <a href="#" class="brand-logo">
+      <svg viewBox="0 0 40 40" fill="none">
+        <defs>
+          <linearGradient id="logoGrad" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6366f1" />
+            <stop offset="50%" stop-color="#8b5cf6" />
+            <stop offset="100%" stop-color="#d946ef" />
+          </linearGradient>
+        </defs>
+        <circle cx="20" cy="20" r="18" stroke="url(#logoGrad)" stroke-width="3.5" />
+        <circle cx="20" cy="22" r="12" stroke="url(#logoGrad)" stroke-width="2.5" opacity="0.85" />
+        <circle cx="20" cy="24" r="6" fill="url(#logoGrad)" />
+      </svg>
+      <span>VIDGENIUS</span>
+    </a>
+
+    <nav class="nav-links">
+      <button class="nav-link active" id="topNavAll" onclick="setGalleryFilter('all')">Features</button>
+      <button class="nav-link" id="topNavImg" onclick="setMode('image')">AI Images</button>
+      <button class="nav-link" id="topNavVid" onclick="setMode('video')">AI Videos</button>
+      <button class="nav-link" onclick="document.getElementById('creationsSection').scrollIntoView({behavior:'smooth'})">Gallery</button>
+      <button class="nav-link" onclick="downloadStandaloneAppNow()">💻 Download App</button>
+    </nav>
+
+    <div class="nav-right">
+      <button class="tool-pill" onclick="downloadStandaloneAppNow()" style="border-color:#c4b5fd; background:#f5f3ff; color:#6d28d9;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Download App</span>
+      </button>
+      <div class="credit-pill" style="cursor:pointer;" onclick="promptUpdateCredits()" title="Click to Refill / Reset Google Flow Pro Credits">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span id="creditCount">920</span> Credits
+      </div>
+      <button class="btn-gradient" onclick="document.getElementById('promptInput').focus()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z"/></svg>
+        <span>Start Creating</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-badge">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.2"><path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z"/></svg>
+      <span>The Future of AI Visual Creation</span>
+    </div>
+
+    <h1 class="hero-title">
+      Your All-in-One AI<br />
+      <span class="grad">Image & Video</span> Studio
+    </h1>
+
+    <p class="hero-sub">
+      Turn your ideas into breathtaking visuals. No skills. No limits. Just imagination.
+    </p>
+
+    <!-- Central Studio Creation Card -->
+    <div class="studio-card">
+      <div class="prompt-input-row">
+        <div class="sparkle-prefix">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z"/></svg>
+        </div>
+
+        <textarea
+          id="promptInput"
+          class="prompt-textarea"
+          placeholder="Tell us what you want to create... (or attach a photo)"
+          rows="2"
+        ></textarea>
+
+        <div class="ref-photo-box">
+          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="onPhotoSelected(event)" />
+          <div class="ref-thumb-chip" id="refThumbChip">
+            <img id="previewImg" src="" alt="Ref" />
+            <button class="ref-remove-btn" onclick="clearPhoto()" title="Remove photo">✕</button>
+          </div>
+          <button class="btn-upload-ref" onclick="document.getElementById('fileInput').click()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>+ Photo</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="quick-chips-row">
+        <button class="q-chip" onclick="usePreset('ဒီပုံထဲကလူကို Video Call ပြောနေတဲ့ပုံစံ ဖန်တီးပေးပါ')">📹 Video Call Motion</button>
+        <button class="q-chip" onclick="usePreset('ဒီပုံထဲကလူကို ပြုံးပြီး လမ်းလျှောက်လာနေတဲ့ပုံစံ ဖန်တီးပေးပါ')">🚶‍♀️ Walking & Smiling</button>
+        <button class="q-chip" onclick="usePreset('ဒီပုံထဲကလူကို မြင်းစီးပြီး ပြေးနေတဲ့ပုံစံ ဖန်တီးပေးပါ')">🐎 Galloping Horse</button>
+        <button class="q-chip" onclick="usePreset('Cinematic slow motion, golden hour sunlight, 4k photorealistic')">✨ Golden Hour Cinema</button>
+      </div>
+
+      <!-- Bottom Professional Controls Row (Clean English + Crisp SVG Icons) -->
+      <div class="studio-toolbar">
+        <div class="toolbar-left">
+          <!-- Mode Pill: Images -->
+          <button class="tool-pill" id="pillImages" onclick="setMode('image')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+            <span>Images</span>
+          </button>
+
+          <!-- Mode Pill: Video -->
+          <button class="tool-pill active" id="pillVideo" onclick="setMode('video')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M22 7l-6 5 6 5V7z"/></svg>
+            <span>Video</span>
+          </button>
+
+          <!-- Model Selector Pill (100% Real Google Flow AI Models) -->
+          <div class="select-pill-wrap">
+            <svg class="select-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <select id="modelSelect" class="select-pill" onchange="onModelChange()"></select>
+          </div>
+
+          <!-- Video Type Selector Pill (Ingredients vs Frames in Flow AI) -->
+          <div class="select-pill-wrap" id="videoTypeWrap">
+            <svg class="select-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6 6 .9-4.3 4.2 1 6-5.7-3-5.7 3 1-6L3 8.9 9 8z"/></svg>
+            <select id="videoTypeSelect" class="select-pill" onchange="recalculateCredits()">
+              <option value="ingredients-to-video" selected>Ingredients</option>
+              <option value="frames-to-video">Frames</option>
+            </select>
+          </div>
+
+          <!-- Aspect Ratio Selector Pill (Exact Flow AI Ratios per Mode) -->
+          <div class="select-pill-wrap">
+            <svg class="select-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2"/></svg>
+            <select id="ratioSelect" class="select-pill" onchange="recalculateCredits()"></select>
+          </div>
+
+          <!-- Duration / Length Selector Pill (4s to 15s in Google Flow AI) -->
+          <div class="select-pill-wrap" id="durationWrap">
+            <svg class="select-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <select id="durationSelect" class="select-pill" onchange="recalculateCredits()"></select>
+          </div>
+
+          <!-- Resolution / Quality Selector Pill (720p/360p for Video, High/Medium/Low for Image) -->
+          <div class="select-pill-wrap" id="qualityWrap">
+            <svg class="select-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12l4 6-10 12L2 9z"/></svg>
+            <select id="qualitySelect" class="select-pill" onchange="recalculateCredits()"></select>
+          </div>
+
+          <!-- Outputs Batch Count Pill (x1 / x2 / x3 / x4 in Flow AI) -->
+          <div class="select-pill-wrap" id="batchWrap">
+            <svg class="select-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            <select id="batchSelect" class="select-pill" onchange="recalculateCredits()">
+              <option value="1" selected>x1 Output</option>
+              <option value="2">x2 Outputs</option>
+              <option value="3">x3 Outputs</option>
+              <option value="4">x4 Outputs</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <div class="live-cost-tag" id="liveCostBadge">⚡ 15 Credits</div>
+          <button class="btn-gradient" id="startBtn" onclick="openConfirmModal()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z"/></svg>
+            <span>Start Creating</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fanned Showcase Strip (Matches VIDGENIUS Bottom Cards) -->
+    <div class="showcase-fan" id="showcaseFan"></div>
+  </section>
+
+  <!-- Live Creations & Gallery Grid -->
+  <section class="creations-section" id="creationsSection">
+    <div class="section-header">
+      <div class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.4"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Your Studio Creations</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="tool-pill active" id="fltAll" onclick="setGalleryFilter('all')">All</button>
+        <button class="tool-pill" id="fltVideo" onclick="setGalleryFilter('video')">Videos</button>
+        <button class="tool-pill" id="fltImage" onclick="setGalleryFilter('image')">Images</button>
+      </div>
+    </div>
+
+    <div class="creations-grid" id="creationsGrid"></div>
+  </section>
+</div>
+
+<!-- Credit & Settings Confirmation Modal -->
+<div class="modal-backdrop" id="confirmModal" onclick="if(event.target===this) closeConfirmModal()">
+  <div class="confirm-modal">
+    <div class="confirm-header">
+      <div class="confirm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z"/></svg>
+      </div>
+      <div>
+        <div class="confirm-title" id="confirmTitle">Confirm Generation</div>
+        <div class="confirm-sub">ဒီသတ်မှတ်ချက်အတိုင်း ဖန်တီးမှာ သေချာပါသလား?</div>
+      </div>
+    </div>
+
+    <div class="spec-table" id="confirmSpecTable"></div>
+
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+      <button class="btn-gradient" style="justify-content:center;" onclick="confirmAndSubmit()">
+        <span id="confirmBtnLabel">✨ Confirm & Create</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Laptop App & Desktop Shortcut Download Modal -->
+<div class="modal-backdrop" id="installAppModal" onclick="if(event.target===this) closeInstallAppModal()">
+  <div class="confirm-modal" style="width:min(480px, 100%);">
+    <div class="confirm-header">
+      <div class="confirm-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div>
+        <div class="confirm-title">VIDGENIUS Desktop App Downloaded!</div>
+        <div class="confirm-sub">လက်တော့ပ် Desktop ပေါ်တွင် App အဖြစ် တင်ထားနိုင်ပါပြီ</div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
+      <!-- Option 1: Instant Client-Side Blob Download of Standalone Desktop App -->
+      <button onclick="downloadStandaloneAppNow(true)" class="btn-gradient" style="width:100%; justify-content:space-between; padding:13px 18px; border-radius:16px;">
+        <span style="display:flex; align-items:center; gap:10px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span>⬇ Download App Again (<code>VIDGENIUS-AI-Studio.html</code>)</span>
+        </span>
+        <span style="font-size:11px; background:rgba(255,255,255,0.22); padding:3px 9px; border-radius:999px;">100% Working</span>
+      </button>
+
+      <!-- Option 2: Native PWA Install (if supported by Chrome/Edge) -->
+      <button id="pwaInstallBtn" onclick="triggerNativePwaInstall()" class="btn-card-action" style="height:46px; border-radius:16px; font-size:13px; border-color:#c4b5fd; background:#f5f3ff; color:#6d28d9; justify-content:space-between; padding:0 18px;">
+        <span>⚡ Install as Native Chrome / Edge App</span>
+        <span style="font-size:11px; font-weight:700;">Install</span>
+      </button>
+    </div>
+
+    <div style="background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:12px 14px; font-size:12px; color:#475569; line-height:1.5; margin-bottom:16px;">
+      ✅ <strong><code>VIDGENIUS-AI-Studio.html</code></strong> ဖိုင်လေး သင့် Downloads ထဲသို့ ရောက်ရှိသွားပါပြီ!<br/>
+      ထိုဖိုင်လေးကို Laptop ၏ <strong>Desktop</strong> ပေါ်သို့ ဆွဲတင်ထားပြီး နှစ်ချက်နှိပ်လိုက်ရုံဖြင့် App တစ်ခုကဲ့သို့ အချိန်မရွေး တန်းပွင့်လာပါမည်။
+    </div>
+
+    <button class="btn-cancel" style="width:100%;" onclick="closeInstallAppModal()">Close</button>
+  </div>
+</div>
+
+<!-- Fullscreen Media Lightbox -->
+<div class="lightbox-backdrop" id="lightboxModal" onclick="if(event.target===this) closeLightbox()">
+  <div id="lightboxContent"></div>
+  <div style="margin-top:16px; display:flex; gap:12px;">
+    <a id="lightboxDlBtn" class="btn-gradient" href="#" download style="text-decoration:none;">⬇ Download to Device</a>
+    <button id="lightboxDelBtn" class="btn-card-action danger" style="height:44px; border-radius:999px; padding:0 18px; font-size:13.5px;" onclick="if(currentLightboxJobId) deleteCreation(currentLightboxJobId)">🗑️ Delete</button>
+    <button class="btn-cancel" style="padding:0 22px;" onclick="closeLightbox()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // Immortal Permanent Link & Standalone Desktop App Server Resolution
+  // Works permanently on https://phykyi3-cmd.github.io/vidgenius/ , file:// Desktop App, and localhost
+  const GIST_API_URL = 'https://api.github.com/gists/01683bfcd4c3f5e6552ff3036136e465';
+  const BEACON_URL = 'https://ntfy.sh/vidgenius_sagawar_live_2eb7b86d/json?poll=1&since=12h';
+  const IS_STATIC_HOST = !window.location.protocol.startsWith('http') || window.location.hostname.endsWith('github.io');
+  const FALLBACK_SERVERS = (window.__VIDGENIUS_SERVERS__ && window.__VIDGENIUS_SERVERS__.length)
+    ? window.__VIDGENIUS_SERVERS__
+    : [
+        'https://dnyvn-180-75-171-117.run.pinggy-free.link',
+        'https://5b2aeb33f1a02f.lhr.life',
+        'http://localhost:3030'
+      ];
+  let API_BASE = IS_STATIC_HOST ? (localStorage.getItem('vidgenius_last_server') || FALLBACK_SERVERS[0]) : '';
+  let isDiscovering = false;
+  let lastUiVersion = 0;
+
+  async function probeCandidateServer(baseUrl) {
+    if (!baseUrl) return false;
+    try {
+      const r = await fetch(baseUrl + '/api/info', {
+        headers: { 'X-Pinggy-No-Screen': 'true' },
+        signal: AbortSignal.timeout(3500)
+      });
+      if (!r.ok) return false;
+      const d = await r.json();
+      return Boolean(d && d.ok);
+    } catch {
+      return false;
+    }
+  }
+
+  async function discoverLiveTunnelFromBeacon() {
+    if (isDiscovering) return;
+    isDiscovering = true;
+    try {
+      // 1. Check if running on the Mac locally first (http://localhost:3030)
+      if (await probeCandidateServer('http://localhost:3030')) {
+        API_BASE = 'http://localhost:3030';
+        localStorage.setItem('vidgenius_last_server', API_BASE);
+        isDiscovering = false;
+        return API_BASE;
+      }
+
+      const candidates = [];
+      // 2. Query GitHub Gist API (0-second cache, 100% VPN-free in Myanmar)
+      try {
+        const gRes = await fetch(GIST_API_URL + '?t=' + Date.now(), { cache: 'no-store' });
+        if (gRes.ok) {
+          const gData = await gRes.json();
+          const rawContent = gData?.files?.['tunnel-state.json']?.content;
+          if (rawContent) {
+            const parsed = JSON.parse(rawContent);
+            if (parsed.pinggy) candidates.push(parsed.pinggy);
+            if (parsed.lhr) candidates.push(parsed.lhr);
+          }
+        }
+      } catch {}
+
+      // 3. Query ntfy.sh Beacon as secondary backup
+      try {
+        const bRes = await fetch(BEACON_URL, { cache: 'no-store' });
+        if (bRes.ok) {
+          const text = await bRes.text();
+          const lines = text.trim().split('\n').filter(Boolean);
+          if (lines.length > 0) {
+            const lastEvt = JSON.parse(lines[lines.length - 1]);
+            const msg = JSON.parse(lastEvt.message || '{}');
+            if (msg.pinggy) candidates.push(msg.pinggy);
+            if (msg.lhr) candidates.push(msg.lhr);
+          }
+        }
+      } catch {}
+
+      for (const c of [...candidates, ...FALLBACK_SERVERS]) {
+        if (!c || c.includes('localhost')) continue;
+        if (!FALLBACK_SERVERS.includes(c)) FALLBACK_SERVERS.unshift(c);
+        if (await probeCandidateServer(c)) {
+          API_BASE = c;
+          localStorage.setItem('vidgenius_last_server', API_BASE);
+          if (!IS_STATIC_HOST && window.location.hostname !== 'localhost' && !window.location.origin.includes(c.replace('https://', ''))) {
+            window.location.replace(c);
+          }
+          break;
+        }
+      }
+    } catch {}
+    isDiscovering = false;
+  }
+  if (IS_STATIC_HOST) {
+    discoverLiveTunnelFromBeacon();
+  }
+
+  function apiUrl(path) {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    return API_BASE + path;
+  }
+
+  // 100% Exact Google Flow AI Models, Durations, and Per-Second Credit Pricing Table
+  const VIDEO_MODELS = [
+    {
+      id: 'omni-1.2-flash',
+      name: 'Omni 1.2 Flash 🔊',
+      durations: [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      supports360p: true,
+      credits720p: { 3: 9, 4: 12, 5: 15, 6: 18, 7: 21, 8: 24, 9: 27, 10: 30, 11: 36, 12: 42, 13: 48, 14: 54, 15: 60 },
+      credits360p: { 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9, 10: 10, 11: 12, 12: 14, 13: 16, 14: 18, 15: 20 }
+    },
+    {
+      id: 'omni-1.1-flash',
+      name: 'Omni 1.1 Flash 🔊',
+      durations: [4, 6, 8, 10],
+      supports360p: true,
+      credits720p: { 4: 7, 6: 10, 8: 12, 10: 15 },
+      credits360p: { 4: 4, 6: 5, 8: 6, 10: 7 }
+    },
+    {
+      id: 'veo-3.1-lite',
+      name: 'Veo 3.1 - Lite 🔊',
+      durations: [8],
+      supports360p: true,
+      credits720p: { 8: 10 },
+      credits360p: { 8: 4 }
+    },
+    {
+      id: 'veo-3.1-fast',
+      name: 'Veo 3.1 - Fast 🔊',
+      durations: [8],
+      supports360p: false,
+      credits720p: { 8: 20 },
+      credits360p: { 8: 20 }
+    },
+    {
+      id: 'veo-3.1-quality',
+      name: 'Veo 3.1 - Quality 🔊',
+      durations: [8],
+      supports360p: false,
+      credits720p: { 8: 100 },
+      credits360p: { 8: 100 }
+    }
+  ];
+
+  const IMAGE_MODELS = [
+    { id: 'nano-banana-2.1', name: '🍌 Nano Banana 2.1', credits: 0 },
+    { id: 'nano-banana-pro', name: '🍌 Nano Banana Pro', credits: 0 },
+    { id: 'nano-banana-2-lite', name: '🍌 Nano Banana 2 Lite', credits: 0 }
+  ];
+
+  const VIDEO_RATIOS = [
+    { value: '9:16', label: '9:16 Portrait' },
+    { value: '16:9', label: '16:9 Landscape' }
+  ];
+
+  const IMAGE_RATIOS = [
+    { value: '9:16', label: '9:16 Portrait' },
+    { value: '16:9', label: '16:9 Landscape' },
+    { value: '4:3', label: '4:3 Standard' },
+    { value: '1:1', label: '1:1 Square' },
+    { value: '3:4', label: '3:4 Vertical' }
+  ];
+
+  const IMAGE_QUALITIES = [
+    { value: 'High', label: 'High Quality' },
+    { value: 'Medium', label: 'Medium Quality' },
+    { value: 'Low', label: 'Low Quality' }
+  ];
+
+  let currentMode = 'video'; // 'video' | 'image'
+  let galleryFilter = 'all';
+  let allJobs = [];
+  let creditsRemaining = 920;
+  let selectedPhoto = null;
+  let currentLightboxJobId = null;
+  let userPin = localStorage.getItem('sagawar_pin') || 'sagawar123';
+  const autoDownloadedIds = new Set(JSON.parse(localStorage.getItem('auto_dl_ids') || '[]'));
+  const trackedGeneratingIds = new Set();
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.getElementById('pillImages').classList.toggle('active', mode === 'image');
+    document.getElementById('pillVideo').classList.toggle('active', mode === 'video');
+    document.getElementById('topNavImg').classList.toggle('active', mode === 'image');
+    document.getElementById('topNavVid').classList.toggle('active', mode === 'video');
+
+    document.getElementById('videoTypeWrap').style.display = mode === 'video' ? 'inline-flex' : 'none';
+    document.getElementById('durationWrap').style.display = mode === 'video' ? 'inline-flex' : 'none';
+    document.getElementById('batchSelect').value = mode === 'image' ? '4' : '1';
+
+    populateControlsForMode();
+    recalculateCredits();
+  }
+
+  function populateControlsForMode() {
+    const sel = document.getElementById('modelSelect');
+    const list = currentMode === 'image' ? IMAGE_MODELS : VIDEO_MODELS;
+    sel.innerHTML = list.map(m =>
+      `<option value="${m.id}">${m.name}</option>`
+    ).join('');
+
+    const ratioSel = document.getElementById('ratioSelect');
+    const ratios = currentMode === 'image' ? IMAGE_RATIOS : VIDEO_RATIOS;
+    ratioSel.innerHTML = ratios.map(r =>
+      `<option value="${r.value}">${r.label}</option>`
+    ).join('');
+
+    syncModelDependentControls();
+  }
+
+  function onModelChange() {
+    syncModelDependentControls();
+    recalculateCredits();
+  }
+
+  function getSingleVideoCostFor(m, qual, sec) {
+    const table = qual === '360p' && m.supports360p ? m.credits360p : m.credits720p;
+    if (table && typeof table[sec] === 'number') return table[sec];
+    const keys = Object.keys(table || {}).map(Number);
+    const fallbackSec = keys.includes(8) ? 8 : keys[0] || 8;
+    return (table && table[fallbackSec]) || 24;
+  }
+
+  function syncModelDependentControls() {
+    const durSel = document.getElementById('durationSelect');
+    const qualSel = document.getElementById('qualitySelect');
+
+    if (currentMode === 'image') {
+      qualSel.innerHTML = IMAGE_QUALITIES.map(q =>
+        `<option value="${q.value}">${q.label}</option>`
+      ).join('');
+      return;
+    }
+
+    const modelId = document.getElementById('modelSelect').value;
+    const m = VIDEO_MODELS.find(x => x.id === modelId) || VIDEO_MODELS[0];
+    const prevDur = Number(durSel.value) || 8;
+    const prevQual = qualSel.value || '720p';
+
+    if (m.supports360p) {
+      qualSel.innerHTML = `
+        <option value="720p" ${prevQual === '720p' ? 'selected' : ''}>720p HD</option>
+        <option value="360p" ${prevQual === '360p' ? 'selected' : ''}>360p Fast</option>
+      `;
+    } else {
+      qualSel.innerHTML = `<option value="720p" selected>720p HD</option>`;
+    }
+
+    const activeQual = qualSel.value || '720p';
+    const count = Number(document.getElementById('batchSelect').value) || 1;
+    const durs = m.durations || [8];
+    const targetDur = durs.includes(prevDur) ? prevDur : (durs.includes(8) ? 8 : durs[0]);
+
+    durSel.innerHTML = durs.map(sec => {
+      const c = getSingleVideoCostFor(m, activeQual, sec) * count;
+      return `<option value="${sec}" ${sec === targetDur ? 'selected' : ''}>${sec} sec (${c} Credits)</option>`;
+    }).join('');
+  }
+
+  function updateDurationOptionLabels() {
+    if (currentMode === 'image') return;
+    const durSel = document.getElementById('durationSelect');
+    const modelId = document.getElementById('modelSelect').value;
+    const qual = document.getElementById('qualitySelect').value || '720p';
+    const count = Number(document.getElementById('batchSelect').value) || 1;
+    const m = VIDEO_MODELS.find(x => x.id === modelId) || VIDEO_MODELS[0];
+    for (const opt of Array.from(durSel.options)) {
+      const sec = Number(opt.value) || 8;
+      const c = getSingleVideoCostFor(m, qual, sec) * count;
+      opt.textContent = `${sec} sec (${c} Credits)`;
+    }
+  }
+
+  function computeCurrentCost() {
+    if (currentMode === 'image') return 0; // Images are 0 Credits (Free) in Google Flow AI
+    const modelId = document.getElementById('modelSelect').value;
+    const qual = document.getElementById('qualitySelect').value || '720p';
+    const dur = Number(document.getElementById('durationSelect').value) || 8;
+    const count = Number(document.getElementById('batchSelect').value) || 1;
+    const m = VIDEO_MODELS.find(x => x.id === modelId) || VIDEO_MODELS[0];
+
+    const singleVideoCost = getSingleVideoCostFor(m, qual, dur);
+    return singleVideoCost * count;
+  }
+
+  function recalculateCredits() {
+    updateDurationOptionLabels();
+    const cost = computeCurrentCost();
+    const count = document.getElementById('batchSelect').value;
+    const dur = document.getElementById('durationSelect').value || '8';
+    const badge = document.getElementById('liveCostBadge');
+    if (currentMode === 'image') {
+      badge.className = 'live-cost-tag free';
+      badge.textContent = `✨ FREE · 0 Credits (x${count})`;
+    } else {
+      badge.className = 'live-cost-tag';
+      badge.textContent = `⚡ ${cost} Credits (${dur}s · x${count})`;
+    }
+  }
+
+  function usePreset(txt) {
+    const el = document.getElementById('promptInput');
+    el.value = txt;
+    el.focus();
+  }
+
+  function onPhotoSelected(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    selectedPhoto = file;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      document.getElementById('previewImg').src = ev.target.result;
+      document.getElementById('refThumbChip').classList.add('visible');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function clearPhoto() {
+    selectedPhoto = null;
+    document.getElementById('fileInput').value = '';
+    document.getElementById('previewImg').src = '';
+    document.getElementById('refThumbChip').classList.remove('visible');
+  }
+
+  function openConfirmModal() {
+    const modelSel = document.getElementById('modelSelect');
+    const modelName = modelSel.options[modelSel.selectedIndex]?.textContent || 'Omni 1.2 Flash';
+    const videoType = document.getElementById('videoTypeSelect').value === 'frames-to-video' ? 'Frames' : 'Ingredients';
+    const ratio = document.getElementById('ratioSelect').value;
+    const dur = document.getElementById('durationSelect').value || '8';
+    const qual = document.getElementById('qualitySelect').value;
+    const batch = document.getElementById('batchSelect').value;
+    const cost = computeCurrentCost();
+
+    const table = document.getElementById('confirmSpecTable');
+    if (currentMode === 'image') {
+      document.getElementById('confirmTitle').textContent = 'Create AI Images on Google Flow';
+      table.innerHTML = `
+        <div class="spec-row"><span class="spec-label">Mode</span><span class="spec-val">AI Image (x${batch})</span></div>
+        <div class="spec-row"><span class="spec-label">Model</span><span class="spec-val">${modelName}</span></div>
+        <div class="spec-row"><span class="spec-label">Quality & Ratio</span><span class="spec-val">${qual} · ${ratio}</span></div>
+        <div class="spec-row highlight"><span class="spec-label">Credit Cost</span><span class="spec-val" style="color:#059669;">FREE (0 Credits)</span></div>
+      `;
+      document.getElementById('confirmBtnLabel').textContent = `✨ Generate x${batch} (Free)`;
+    } else {
+      document.getElementById('confirmTitle').textContent = 'Confirm Video Generation';
+      table.innerHTML = `
+        <div class="spec-row"><span class="spec-label">Model</span><span class="spec-val">${modelName}</span></div>
+        <div class="spec-row"><span class="spec-label">Video Type</span><span class="spec-val">${videoType} (x${batch})</span></div>
+        <div class="spec-row"><span class="spec-label">Length & Resolution</span><span class="spec-val">${dur} sec · ${qual}</span></div>
+        <div class="spec-row"><span class="spec-label">Aspect Ratio</span><span class="spec-val">${ratio}</span></div>
+        <div class="spec-row"><span class="spec-label">Your Balance</span><span class="spec-val">${creditsRemaining} → ${Math.max(0, creditsRemaining - cost)} Credits</span></div>
+        <div class="spec-row highlight"><span class="spec-label">Flow AI Cost</span><span class="spec-val">⚡ ${cost} Credits</span></div>
+      `;
+      document.getElementById('confirmBtnLabel').textContent = `✨ Confirm (${cost} Credits)`;
+    }
+
+    document.getElementById('confirmModal').classList.add('open');
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirmModal').classList.remove('open');
+  }
+
+  function openPricingGuide() {
+    setMode('video');
+    openConfirmModal();
+  }
+
+  async function confirmAndSubmit() {
+    closeConfirmModal();
+
+    const promptBox = document.getElementById('promptInput');
+    const prompt = promptBox.value.trim() || 'Cinematic smooth movement, natural lighting, photorealistic';
+    const model = document.getElementById('modelSelect').value;
+    const videoType = document.getElementById('videoTypeSelect').value;
+    const ratio = document.getElementById('ratioSelect').value;
+    const dur = Number(document.getElementById('durationSelect').value) || 8;
+    const qual = document.getElementById('qualitySelect').value;
+    const batch = Number(document.getElementById('batchSelect').value) || 1;
+    const cost = computeCurrentCost();
+
+    const fd = new FormData();
+    fd.append('taskType', currentMode);
+    fd.append('subMode', currentMode === 'image' ? 'text-to-image' : videoType);
+    fd.append('model', model);
+    fd.append('prompt', prompt);
+    fd.append('durationSeconds', String(dur));
+    fd.append('aspectRatio', ratio);
+    fd.append('resolution', qual);
+    fd.append('imageCount', String(batch));
+    fd.append('creditCost', String(cost));
+    if (selectedPhoto) fd.append('image', selectedPhoto);
+
+    try {
+      const res = await fetch(apiUrl('/api/generate'), {
+        method: 'POST',
+        headers: { 'X-Pin': userPin, 'X-Pinggy-No-Screen': 'true' },
+        body: fd
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed');
+
+      trackedGeneratingIds.add(data.jobId);
+      promptBox.value = '';
+      clearPhoto();
+      showToast(currentMode === 'image' ? '✨ Generating on Google Flow AI...' : '🎬 Rendering Video on Google Flow AI...');
+      await refreshAllJobs();
+      document.getElementById('creationsSection').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      showToast('Error: ' + err.message);
+    }
+  }
+
+  function setGalleryFilter(f) {
+    galleryFilter = f;
+    document.getElementById('fltAll').classList.toggle('active', f === 'all');
+    document.getElementById('fltVideo').classList.toggle('active', f === 'video');
+    document.getElementById('fltImage').classList.toggle('active', f === 'image');
+    renderStudio();
+  }
+
+  function triggerAutoDownload(job) {
+    if (!job || !job.resultUrl || autoDownloadedIds.has(job.id)) return;
+    autoDownloadedIds.add(job.id);
+    try {
+      localStorage.setItem('auto_dl_ids', JSON.stringify(Array.from(autoDownloadedIds).slice(-50)));
+    } catch {}
+    const fullUrl = apiUrl(job.resultUrl);
+    const a = document.createElement('a');
+    a.href = fullUrl + '?download=1';
+    a.download = `vidgenius_${job.id}.${job.resultType === 'image' ? 'jpg' : 'mp4'}`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    openLightbox(fullUrl, job.resultType === 'image', job.id);
+    showToast('🎉 Completed! Auto-downloading to your Device...');
+  }
+
+  function openLightbox(url, isImage, jobId) {
+    currentLightboxJobId = jobId || null;
+    const fullUrl = apiUrl(url);
+    const modal = document.getElementById('lightboxModal');
+    const content = document.getElementById('lightboxContent');
+    const dl = document.getElementById('lightboxDlBtn');
+    const delBtn = document.getElementById('lightboxDelBtn');
+    if (delBtn) delBtn.style.display = currentLightboxJobId ? 'inline-flex' : 'none';
+    if (isImage) {
+      content.innerHTML = `<img class="lightbox-media" src="${fullUrl}" />`;
+      dl.download = `vidgenius_${jobId || 'image'}.jpg`;
+    } else {
+      content.innerHTML = `<video class="lightbox-media" src="${fullUrl}" controls autoplay playsinline loop></video>`;
+      dl.download = `vidgenius_${jobId || 'video'}.mp4`;
+    }
+    dl.href = fullUrl + '?download=1';
+    modal.classList.add('open');
+  }
+
+  function closeLightbox() {
+    currentLightboxJobId = null;
+    const modal = document.getElementById('lightboxModal');
+    document.getElementById('lightboxContent').innerHTML = '';
+    modal.classList.remove('open');
+  }
+
+  async function deleteCreation(jobId) {
+    if (!jobId) return;
+    try {
+      allJobs = allJobs.filter(j => j.id !== jobId);
+      trackedGeneratingIds.delete(jobId);
+      if (currentLightboxJobId === jobId) {
+        closeLightbox();
+      }
+      renderStudio();
+      await fetch(apiUrl('/api/delete/' + jobId), {
+        method: 'POST',
+        headers: { 'X-Pin': userPin, 'X-Pinggy-No-Screen': 'true' }
+      });
+      showToast('🗑️ ဗီဒီယို/ဓာတ်ပုံကို ဖျက်ပြီးပါပြီ (Deleted!)');
+    } catch (err) {
+      showToast('Error deleting: ' + err.message);
+    }
+  }
+
+  function renderStudio() {
+    // 1. Render Top Fanned Showcase (up to 5 completed items)
+    const fan = document.getElementById('showcaseFan');
+    const completed = allJobs.filter(j => j.status === 'completed' && j.resultUrl).slice(0, 5);
+    fan.innerHTML = completed.map(j => {
+      const isImg = j.resultType === 'image' || j.resultUrl.endsWith('.jpg') || j.resultUrl.endsWith('.png');
+      const mediaUrl = apiUrl(j.resultUrl);
+      return `
+        <div class="fan-card" onclick="openLightbox('${mediaUrl}', ${isImg}, '${j.id}')">
+          ${isImg
+            ? `<img src="${mediaUrl}" loading="lazy" />`
+            : `<video src="${mediaUrl}" autoplay muted loop playsinline preload="metadata"></video>`
+          }
+        </div>
+      `;
+    }).join('');
+
+    // 2. Render Main Creations Grid
+    const grid = document.getElementById('creationsGrid');
+    const filtered = allJobs.filter(j => {
+      if (galleryFilter === 'video' && j.resultType === 'image') return false;
+      if (galleryFilter === 'image' && j.resultType !== 'image') return false;
+      return true;
+    });
+
+    grid.innerHTML = filtered.map(j => {
+      const isPending = j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued';
+      const ratioClass = j.aspectRatio === '16:9' ? 'landscape' : j.aspectRatio === '1:1' ? 'square' : '';
+
+      if (isPending) {
+        const elapsed = Math.max(1, Math.round((Date.now() - (j.createdAt || Date.now())) / 1000));
+        const pct = Math.min(96, Math.max(j.progress || 25, Math.min(92, 20 + Math.floor(elapsed * 1.2))));
+        const inUrl = j.inputImageUrl ? apiUrl(j.inputImageUrl) : '';
+        return `
+          <div class="creation-card">
+            <div class="creation-media-wrap ${ratioClass}">
+              ${inUrl ? `<img src="${inUrl}" style="filter:blur(6px); opacity:0.4;" />` : ''}
+              <div class="rendering-overlay">
+                <div class="render-spinner"></div>
+                <div class="render-pct">${pct}%</div>
+                <div class="render-label">
+                  Rendering on Google Flow AI...<br/>(${elapsed}s elapsed)
+                </div>
+                <div class="render-bar">
+                  <div class="render-bar-fill" style="width:${pct}%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="creation-info">
+              <div class="creation-badges">
+                <span>${j.modelLabel || 'Google Flow AI'}</span>
+                <span>${j.durationSeconds || 8}s · ${j.resolution || '720p'} · ⚡ ${j.creditCost || 0} Cr</span>
+              </div>
+              <div class="creation-prompt">${j.prompt || ''}</div>
+              <div class="creation-actions">
+                <button class="btn-card-action danger" style="flex:1;" onclick="deleteCreation('${j.id}')">🗑️ Cancel & Delete</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      if (j.status === 'completed' && j.resultUrl) {
+        const isImg = j.resultType === 'image' || j.resultUrl.endsWith('.jpg') || j.resultUrl.endsWith('.png');
+        const hasBatch4 = isImg && Array.isArray(j.resultUrls) && j.resultUrls.length > 1;
+        const mediaUrl = apiUrl(j.resultUrl);
+
+        return `
+          <div class="creation-card">
+            <div class="creation-media-wrap ${ratioClass}">
+              ${hasBatch4
+                ? `<div class="batch-4-grid">
+                    ${j.resultUrls.map(u => `<img src="${apiUrl(u)}" onclick="openLightbox('${apiUrl(u)}', true, '${j.id}')" loading="lazy" />`).join('')}
+                   </div>`
+                : isImg
+                ? `<img src="${mediaUrl}" onclick="openLightbox('${mediaUrl}', true, '${j.id}')" loading="lazy" />`
+                : `<video src="${mediaUrl}" autoplay muted loop playsinline preload="metadata" onclick="openLightbox('${mediaUrl}', false, '${j.id}')"></video>`
+              }
+            </div>
+            <div class="creation-info">
+              <div class="creation-badges">
+                <span>${j.modelLabel || 'Google Flow AI'}</span>
+                <span>${isImg ? 'FREE · ' + (j.resultUrls?.length || 1) + 'x' : (j.durationSeconds || 8) + 's · ' + (j.resolution || '720p') + (j.creditCost ? ' · ⚡ ' + j.creditCost + ' Cr' : '')}</span>
+              </div>
+              <div class="creation-prompt">${j.prompt || ''}</div>
+              <div class="creation-actions">
+                <button class="btn-card-action" onclick="openLightbox('${mediaUrl}', ${isImg}, '${j.id}')">▶ Preview</button>
+                <a class="btn-card-action primary" href="${mediaUrl}?download=1" download="vidgenius_${j.id}.${isImg ? 'jpg' : 'mp4'}">⬇ Download</a>
+                <button class="btn-card-action danger" onclick="deleteCreation('${j.id}')" title="Delete this creation">🗑️</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+      return '';
+    }).join('');
+  }
+
+  let latestLhrUrl = '';
+  async function refreshAllJobs() {
+    try {
+      const res = await fetch(apiUrl('/api/info'), {
+        headers: { 'X-Pinggy-No-Screen': 'true' }
+      });
+      const data = await res.json();
+      if (data.uiVersion) {
+        if (lastUiVersion && lastUiVersion !== data.uiVersion) {
+          lastUiVersion = data.uiVersion;
+          showToast('✨ Studio Updated! Auto-refreshing...');
+          setTimeout(() => window.location.reload(), 1200);
+          return;
+        }
+        lastUiVersion = data.uiVersion;
+      }
+      if (data.currentLhrUrl) {
+        latestLhrUrl = data.currentLhrUrl;
+      }
+      if (data.currentPinggyUrl) {
+        localStorage.setItem('vidgenius_last_server', data.currentPinggyUrl);
+      }
+      if (
+        window.location.hostname.endsWith('.lhr.life') &&
+        data.currentLhrUrl &&
+        !window.location.origin.includes(data.currentLhrUrl.replace('https://', ''))
+      ) {
+        window.location.replace(data.currentLhrUrl);
+        return;
+      }
+      if (typeof data.creditsRemaining === 'number') {
+        creditsRemaining = data.creditsRemaining;
+        document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
+      }
+      const incoming = data.recentJobs || [];
+
+      for (const job of incoming) {
+        if (
+          trackedGeneratingIds.has(job.id) &&
+          job.status === 'completed' &&
+          job.resultUrl
+        ) {
+          trackedGeneratingIds.delete(job.id);
+          triggerAutoDownload(job);
+        }
+      }
+
+      const hasPending = incoming.some(j => j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued');
+      const prevSig = JSON.stringify(allJobs.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
+      const nextSig = JSON.stringify(incoming.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
+
+      allJobs = incoming;
+      if (prevSig !== nextSig || hasPending) {
+        renderStudio();
+      }
+    } catch (e) {
+      // If primary tunnel switched, automatically discover the new live tunnel from beacon
+      discoverLiveTunnelFromBeacon();
+      if (!window.location.protocol.startsWith('http') && FALLBACK_SERVERS.length > 1) {
+        const idx = FALLBACK_SERVERS.indexOf(API_BASE);
+        API_BASE = FALLBACK_SERVERS[(idx + 1) % FALLBACK_SERVERS.length];
+      }
+    }
+  }
+
+  // PWA & 1-Click Instant Standalone Desktop App Download (Client-Side Blob — 0% Blocked!)
+  let deferredPwaPrompt = null;
+  if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  }
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPwaPrompt = e;
+  });
+
+  function downloadStandaloneAppNow(keepModalOpen) {
+    try {
+      const activeOrigin = window.location.protocol.startsWith('http')
+        ? window.location.origin
+        : (API_BASE || FALLBACK_SERVERS[0]);
+      const servers = Array.from(new Set([activeOrigin, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)));
+      let fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      fullHtml = fullHtml.replace(
+        '<head>',
+        '<head>\n  <script>window.__VIDGENIUS_SERVERS__ = ' + JSON.stringify(servers) + ';<\/script>'
+      );
+      fullHtml = fullHtml.replace(/class="modal-backdrop open"/g, 'class="modal-backdrop"');
+
+      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = 'VIDGENIUS-AI-Studio.html';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 8000);
+
+      if (!keepModalOpen) {
+        openInstallAppModal();
+      }
+      showToast('✅ VIDGENIUS-AI-Studio.html ဒေါင်းလုဒ်ဆွဲပြီးပါပြီ! Desktop ပေါ် တင်ထားနိုင်ပါပြီ။');
+    } catch (err) {
+      window.location.href = apiUrl('/api/download-app');
+    }
+  }
+
+  function openInstallAppModal() {
+    document.getElementById('installAppModal').classList.add('open');
+  }
+
+  function closeInstallAppModal() {
+    document.getElementById('installAppModal').classList.remove('open');
+  }
+
+  async function triggerNativePwaInstall() {
+    if (deferredPwaPrompt) {
+      deferredPwaPrompt.prompt();
+      const { outcome } = await deferredPwaPrompt.userChoice;
+      if (outcome === 'accepted') {
+        deferredPwaPrompt = null;
+        closeInstallAppModal();
+        showToast('🎉 VIDGENIUS App Installed on your Laptop!');
+        return;
+      }
+    }
+    downloadStandaloneAppNow(true);
+  }
+
+  async function promptUpdateCredits() {
+    const val = window.prompt(
+      'Google Flow AI Credit လက်ကျန်ပမာဏအသစ် ထည့်သွင်းပါ (ဥပမာ Gmail အသစ်ပြောင်းလျှင် သို့မဟုတ် Credit ဖြည့်ပြီးလျှင် 1000 ဟု ရိုက်ထည့်ပါ):',
+      String(creditsRemaining || 1000)
+    );
+    if (val === null) return;
+    const num = Number(val.trim());
+    if (isNaN(num) || num < 0) return;
+    try {
+      const res = await fetch(apiUrl('/api/settings'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Pinggy-No-Screen': 'true' },
+        body: JSON.stringify({ creditsRemaining: num })
+      });
+      if (res.ok) {
+        creditsRemaining = num;
+        document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
+        showToast(`⚡ Credit လက်ကျန်ကို ${num.toLocaleString()} Credits သို့ ပြောင်းလဲပြီးပါပြီ!`);
+      }
+    } catch (e) {
+      showToast('Error updating credits');
+    }
+  }
+
+  // Init
+  populateControlsForMode();
+  recalculateCredits();
+  refreshAllJobs();
+  setInterval(refreshAllJobs, 2000);
+</script>
+</body>
+</html>
