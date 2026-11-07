@@ -1287,56 +1287,56 @@
       } catch {}
 
       const candidates = [];
-      const addParsedCandidates = (parsed) => {
-        if (!parsed) return;
-        // Always prioritize lhr.life first because it has 0% CORS preflight/interstitial issues on mobile browsers
-        if (parsed.lhr && !candidates.includes(parsed.lhr)) candidates.push(parsed.lhr);
-        if (parsed.pinggy && !candidates.includes(parsed.pinggy)) candidates.push(parsed.pinggy);
+      const parsedList = [];
+      const collectParsed = (parsed) => {
+        if (parsed && (parsed.lhr || parsed.pinggy)) {
+          parsedList.push({ ...parsed, ts: Number(parsed.ts) || 0 });
+        }
       };
 
-      // 2. Same-Origin tunnel.json on smartmyanmarfonts.com / github.io (0 rate limit, instant in Myanmar!)
-      if (window.location.protocol.startsWith('http')) {
-        try {
-          const tRes = await fetchWithTimeout('./tunnel.json?t=' + Date.now(), { cache: 'no-store' }, 3000);
-          if (tRes.ok) {
-            addParsedCandidates(await tRes.json());
-          }
-        } catch {}
-      }
-
-      // 3. Raw GitHub Gist (No API rate limit on CGNAT mobile IPs)
-      try {
-        const rawRes = await fetchWithTimeout(GIST_RAW_URL + '?t=' + Date.now(), { cache: 'no-store' }, 3500);
-        if (rawRes.ok) {
-          addParsedCandidates(await rawRes.json());
-        }
-      } catch {}
-
-      // 4. GitHub Gist API (0-second cache)
-      if (candidates.length === 0) {
-        try {
-          const gRes = await fetchWithTimeout(GIST_API_URL + '?t=' + Date.now(), { cache: 'no-store' }, 3500);
-          if (gRes.ok) {
-            const gData = await gRes.json();
-            const rawContent = gData?.files?.['tunnel-state.json']?.content;
-            if (rawContent) addParsedCandidates(JSON.parse(rawContent));
-          }
-        } catch {}
-      }
-
-      // 5. Query ntfy.sh Beacon as backup
-      if (candidates.length === 0) {
-        try {
-          const bRes = await fetchWithTimeout(BEACON_URL, { cache: 'no-store' }, 3500);
+      // Query all 4 discovery sources in parallel so a 10-min CDN-cached tunnel.json never hides a fresh 0-sec ntfy/Gist tunnel!
+      await Promise.allSettled([
+        // A. ntfy.sh Beacon (0-second cache, instant worldwide)
+        (async () => {
+          const bRes = await fetchWithTimeout(BEACON_URL + '?_=' + Date.now(), { cache: 'no-store' }, 3000);
           if (bRes.ok) {
             const text = await bRes.text();
             const lines = text.trim().split('\n').filter(Boolean);
-            if (lines.length > 0) {
-              const lastEvt = JSON.parse(lines[lines.length - 1]);
-              addParsedCandidates(JSON.parse(lastEvt.message || '{}'));
+            for (let i = lines.length - 1; i >= Math.max(0, lines.length - 3); i--) {
+              try {
+                const evt = JSON.parse(lines[i]);
+                collectParsed(JSON.parse(evt.message || '{}'));
+              } catch {}
             }
           }
-        } catch {}
+        })(),
+        // B. GitHub Gist API (0-second cache)
+        (async () => {
+          const gRes = await fetchWithTimeout(GIST_API_URL + '?t=' + Date.now(), { cache: 'no-store' }, 3000);
+          if (gRes.ok) {
+            const gData = await gRes.json();
+            const rawContent = gData?.files?.['tunnel-state.json']?.content;
+            if (rawContent) collectParsed(JSON.parse(rawContent));
+          }
+        })(),
+        // C. Same-Origin tunnel.json on smartmyanmarfonts.com (0 rate limit)
+        (async () => {
+          if (!window.location.protocol.startsWith('http')) return;
+          const tRes = await fetchWithTimeout('./tunnel.json?t=' + Date.now(), { cache: 'no-store' }, 2500);
+          if (tRes.ok) collectParsed(await tRes.json());
+        })(),
+        // D. Raw GitHub Gist
+        (async () => {
+          const rawRes = await fetchWithTimeout(GIST_RAW_URL + '?t=' + Date.now(), { cache: 'no-store' }, 3000);
+          if (rawRes.ok) collectParsed(await rawRes.json());
+        })()
+      ]);
+
+      // Sort newest timestamp first!
+      parsedList.sort((a, b) => b.ts - a.ts);
+      for (const p of parsedList) {
+        if (p.lhr && !candidates.includes(p.lhr)) candidates.push(p.lhr);
+        if (p.pinggy && !candidates.includes(p.pinggy)) candidates.push(p.pinggy);
       }
 
       const allToTry = [...candidates, ...FALLBACK_SERVERS];
