@@ -2342,7 +2342,7 @@
     }
   }
 
-  // Init (0.00s Instant Render from Cache + 1.2s Fast Live Polling)
+  // Init (0.00s Instant Render from Cache + 0.01s SSE + 1.0s Fast Live Polling)
   document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
   populateControlsForMode();
   recalculateCredits();
@@ -2350,7 +2350,11 @@
     renderStudio();
   }
   refreshAllJobs();
-  setInterval(refreshAllJobs, 1200);
+  ensureLiveSseConnected();
+  setInterval(() => {
+    refreshAllJobs();
+    ensureLiveSseConnected();
+  }, 1000);
   setInterval(updatePendingCardsInPlace, 1000);
 </script>
 </body>
