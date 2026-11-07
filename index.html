@@ -1860,9 +1860,9 @@
   let latestLhrUrl = '';
   async function refreshAllJobs() {
     try {
-      const res = await fetch(apiUrl('/api/info'), {
-        headers: { 'X-Pinggy-No-Screen': 'true' }
-      });
+      const targetInfoUrl = apiUrl('/api/info');
+      const headers = targetInfoUrl.includes('pinggy') ? { 'X-Pinggy-No-Screen': 'true' } : {};
+      const res = await fetchWithTimeout(targetInfoUrl, { headers }, 4500);
       const data = await res.json();
       if (data.uiVersion) {
         if (lastUiVersion && lastUiVersion !== data.uiVersion) {
@@ -1875,8 +1875,11 @@
       }
       if (data.currentLhrUrl) {
         latestLhrUrl = data.currentLhrUrl;
-      }
-      if (data.currentPinggyUrl) {
+        if (IS_STATIC_HOST) {
+          API_BASE = data.currentLhrUrl;
+          localStorage.setItem('vidgenius_last_server', data.currentLhrUrl);
+        }
+      } else if (data.currentPinggyUrl && IS_STATIC_HOST && !API_BASE) {
         localStorage.setItem('vidgenius_last_server', data.currentPinggyUrl);
       }
       if (
@@ -1997,7 +2000,6 @@
     try {
       const res = await fetch(apiUrl('/api/settings'), {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Pinggy-No-Screen': 'true' },
         body: JSON.stringify({ creditsRemaining: num })
       });
       if (res.ok) {
