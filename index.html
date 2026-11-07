@@ -1214,10 +1214,7 @@
         'https://cd53db2b66625f.lhr.life',
         'https://hpdvs-180-75-171-117.run.pinggy-free.link'
       ];
-  const savedServer = localStorage.getItem('vidgenius_last_server') || '';
-  let API_BASE = IS_STATIC_HOST
-    ? (savedServer.includes('.lhr.life') ? savedServer : FALLBACK_SERVERS[0])
-    : '';
+  let API_BASE = IS_STATIC_HOST ? FALLBACK_SERVERS[0] : '';
   let isDiscovering = false;
   let lastUiVersion = 0;
 
