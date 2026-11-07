@@ -1985,17 +1985,23 @@
   }
 
   function updatePendingCardsInPlace() {
+    updateLiveRenderBanner();
     for (const j of allJobs) {
       const isPending = j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued';
       if (!isPending) continue;
-      const elapsed = Math.max(1, Math.round((Date.now() - (j.createdAt || Date.now())) / 1000));
-      const pct = Math.min(96, Math.max(j.progress || 25, Math.min(92, 20 + Math.floor(elapsed * 1.2))));
+      const info = getJobTimingAndProgress(j);
       const pctEl = document.getElementById('pct-' + j.id);
       const lblEl = document.getElementById('lbl-' + j.id);
       const barEl = document.getElementById('bar-' + j.id);
-      if (pctEl) pctEl.textContent = pct + '%';
-      if (lblEl) lblEl.innerHTML = `Rendering on Google Flow AI...<br/>(${elapsed}s elapsed)`;
-      if (barEl) barEl.style.width = pct + '%';
+      if (pctEl) pctEl.textContent = info.pct + '%';
+      if (lblEl) {
+        lblEl.innerHTML = `
+          <strong>ခဏစောင့်ပေးပါ...</strong><br/>
+          ${info.stageLabel}<br/>
+          <span style="color:#c4b5fd; font-weight:700; display:inline-block; margin-top:4px;">${info.remainText}</span>
+        `;
+      }
+      if (barEl) barEl.style.width = info.pct + '%';
     }
   }
 
@@ -2161,6 +2167,7 @@
   recalculateCredits();
   refreshAllJobs();
   setInterval(refreshAllJobs, 2000);
+  setInterval(updatePendingCardsInPlace, 1000);
 </script>
 </body>
 </html>
