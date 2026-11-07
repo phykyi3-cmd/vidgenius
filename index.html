@@ -1611,6 +1611,22 @@
     openConfirmModal();
   }
 
+  function buildFormData(prompt, model, videoType, dur, ratio, qual, batch, cost) {
+    const fd = new FormData();
+    fd.append('pin', userPin);
+    fd.append('taskType', currentMode);
+    fd.append('subMode', currentMode === 'image' ? 'text-to-image' : videoType);
+    fd.append('model', model);
+    fd.append('prompt', prompt);
+    fd.append('durationSeconds', String(dur));
+    fd.append('aspectRatio', ratio);
+    fd.append('resolution', qual);
+    fd.append('imageCount', String(batch));
+    fd.append('creditCost', String(cost));
+    if (selectedPhoto) fd.append('image', selectedPhoto);
+    return fd;
+  }
+
   async function confirmAndSubmit() {
     closeConfirmModal();
 
@@ -1624,36 +1640,54 @@
     const batch = Number(document.getElementById('batchSelect').value) || 1;
     const cost = computeCurrentCost();
 
-    const fd = new FormData();
-    fd.append('taskType', currentMode);
-    fd.append('subMode', currentMode === 'image' ? 'text-to-image' : videoType);
-    fd.append('model', model);
-    fd.append('prompt', prompt);
-    fd.append('durationSeconds', String(dur));
-    fd.append('aspectRatio', ratio);
-    fd.append('resolution', qual);
-    fd.append('imageCount', String(batch));
-    fd.append('creditCost', String(cost));
-    if (selectedPhoto) fd.append('image', selectedPhoto);
+    showToast(currentMode === 'image' ? '✨ Connecting to Google Flow AI...' : '🎬 Connecting to Google Flow AI...');
 
-    try {
-      const res = await fetch(apiUrl('/api/generate'), {
-        method: 'POST',
-        headers: { 'X-Pin': userPin, 'X-Pinggy-No-Screen': 'true' },
-        body: fd
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed');
+    // Build ordered list of candidate backend servers (no custom headers -> zero CORS preflight!)
+    let serversToTry = IS_STATIC_HOST
+      ? Array.from(new Set([API_BASE, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)))
+      : [''];
 
-      trackedGeneratingIds.add(data.jobId);
-      promptBox.value = '';
-      clearPhoto();
-      showToast(currentMode === 'image' ? '✨ Generating on Google Flow AI...' : '🎬 Rendering Video on Google Flow AI...');
-      await refreshAllJobs();
-      document.getElementById('creationsSection').scrollIntoView({ behavior: 'smooth' });
-    } catch (err) {
-      showToast('Error: ' + err.message);
+    // Put .lhr.life servers first because they have 0% CORS preflight/interstitial issues on mobile browsers
+    if (IS_STATIC_HOST) {
+      serversToTry.sort((a, b) => (b.includes('.lhr.life') ? 1 : 0) - (a.includes('.lhr.life') ? 1 : 0));
     }
+
+    let lastErr = null;
+    for (let pass = 0; pass < 2; pass++) {
+      if (pass === 1 && IS_STATIC_HOST) {
+        const discovered = await discoverLiveTunnelFromBeacon();
+        serversToTry = Array.from(new Set([discovered, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)));
+        serversToTry.sort((a, b) => (b.includes('.lhr.life') ? 1 : 0) - (a.includes('.lhr.life') ? 1 : 0));
+      }
+      for (const base of serversToTry) {
+        try {
+          const fd = buildFormData(prompt, model, videoType, dur, ratio, qual, batch, cost);
+          const targetUrl = (base || '') + '/api/generate';
+          const res = await fetch(targetUrl, {
+            method: 'POST',
+            body: fd
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed');
+
+          if (base) {
+            API_BASE = base;
+            localStorage.setItem('vidgenius_last_server', base);
+          }
+          trackedGeneratingIds.add(data.jobId);
+          promptBox.value = '';
+          clearPhoto();
+          showToast(currentMode === 'image' ? '✨ Generating on Google Flow AI...' : '🎬 Rendering Video on Google Flow AI...');
+          await refreshAllJobs();
+          document.getElementById('creationsSection').scrollIntoView({ behavior: 'smooth' });
+          return;
+        } catch (err) {
+          lastErr = err;
+        }
+      }
+    }
+
+    showToast('Error: ' + (lastErr ? lastErr.message : 'Connection failed'));
   }
 
   function setGalleryFilter(f) {
