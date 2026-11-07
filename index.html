@@ -1903,37 +1903,42 @@
     if (!box) return;
     const isImg = job.resultType === 'image' || job.resultUrl.split('?')[0].endsWith('.jpg') || job.resultUrl.split('?')[0].endsWith('.png');
     const mediaUrl = apiUrl(job.resultUrl);
+    const dlUrl = toDownloadUrl(job.resultUrl);
     const thumbUrl = getThumbUrlForJob(job);
+    const isLandscape = job.aspectRatio === '16:9';
     box.style.display = 'block';
     box.innerHTML = `
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
-        <div style="display:flex; align-items:center; gap:14px; flex:1; min-width:240px;">
-          <div style="width:96px; height:128px; border-radius:14px; overflow:hidden; border:2px solid #34d399; flex-shrink:0; background:#000; cursor:pointer;" onclick="openLightbox('${mediaUrl}', ${isImg}, '${job.id}')">
-            ${isImg
-              ? `<img src="${mediaUrl}" style="width:100%; height:100%; object-fit:cover;" />`
-              : `<video src="${mediaUrl}" poster="${thumbUrl}" autoplay muted loop playsinline style="width:100%; height:100%; object-fit:cover;"></video>`
-            }
-          </div>
-          <div>
-            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(16,185,129,0.25); border:1px solid #34d399; color:#a7f3d0; font-size:11px; font-weight:800; padding:3px 10px; border-radius:999px; margin-bottom:6px;">
-              ✨ ဗီဒီယို Create လုပ်ပြီးပါပြီ · ချက်ချင်း ကြည့်ရှုနိုင်ပါပြီ!
-            </div>
-            <div style="font-size:15px; font-weight:800; color:#fff; margin-bottom:4px;">
-              ${job.modelLabel || 'Google Flow AI'} · ${job.durationSeconds || 8}s · ${job.resolution || '720p'} · ${job.aspectRatio || '9:16'}
-            </div>
-            <div style="font-size:12.5px; color:#cbd5e1; max-width:420px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-              "${job.prompt || ''}"
-            </div>
-          </div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-size:12px; font-weight:800; padding:5px 12px; border-radius:999px;">
+            ✨ ဗီဒီယို Create လုပ်ပြီးပါပြီ!
+          </span>
+          <span style="font-size:14px; font-weight:800; color:#1e293b;">
+            ${job.modelLabel || 'Google Flow AI'} · ${job.durationSeconds || 8}s · ${job.resolution || '720p'} · ${job.aspectRatio || '9:16'}
+          </span>
+        </div>
+        <button onclick="document.getElementById('justFinishedBanner').style.display='none'" style="background:#f1f5f9; color:#475569; border:1px solid #e2e8f0; width:32px; height:32px; border-radius:999px; cursor:pointer; font-weight:700;">✕</button>
+      </div>
+
+      <!-- Large Centered Real Video Player Right inside the Tool -->
+      <div style="width:100%; background:#09090b; border-radius:18px; overflow:hidden; display:flex; align-items:center; justify-content:center; max-height:${isLandscape ? '380px' : '460px'}; box-shadow:0 12px 32px rgba(15,23,42,0.18);">
+        ${isImg
+          ? `<img src="${mediaUrl}" style="max-height:440px; max-width:100%; object-fit:contain;" />`
+          : `<video src="${mediaUrl}" poster="${thumbUrl}" controls autoplay loop playsinline style="max-height:${isLandscape ? '380px' : '460px'}; max-width:100%; border-radius:14px;"></video>`
+        }
+      </div>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:14px;">
+        <div style="font-size:13px; color:#475569; font-weight:600; flex:1; min-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+          Prompt: "${job.prompt || ''}"
         </div>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-          <button onclick="openLightbox('${mediaUrl}', ${isImg}, '${job.id}')" class="btn-gradient" style="height:42px; padding:0 18px;">
-            ▶ ချက်ချင်းကြည့်မည်
+          <button onclick="openLightbox('${mediaUrl}', ${isImg}, '${job.id}')" class="btn-card-action" style="height:42px; padding:0 16px; border-radius:999px;">
+            ⛶ Fullscreen ကြည့်မည်
           </button>
-          <a href="${mediaUrl}${mediaUrl.includes('?') ? '&' : '?'}download=1" download="vidgenius_${job.id}.${isImg ? 'jpg' : 'mp4'}" class="btn-card-action primary" style="height:42px; padding:0 18px; border-radius:999px; text-decoration:none; font-weight:700;">
-            ⬇ Download
+          <a href="${dlUrl}" download="vidgenius_${job.id}.${isImg ? 'jpg' : 'mp4'}" class="btn-gradient" style="height:42px; padding:0 20px; border-radius:999px; text-decoration:none;">
+            ⬇ Download Video
           </a>
-          <button onclick="document.getElementById('justFinishedBanner').style.display='none'" style="background:rgba(255,255,255,0.12); color:#fff; border:none; width:34px; height:34px; border-radius:999px; cursor:pointer;">✕</button>
         </div>
       </div>
     `;
@@ -2106,7 +2111,7 @@
               <div class="creation-prompt">${j.prompt || ''}</div>
               <div class="creation-actions">
                 <button class="btn-card-action" onclick="openLightbox('${mediaUrl}', ${isImg}, '${j.id}')">▶ Preview</button>
-                <a class="btn-card-action primary" href="${mediaUrl}?download=1" download="vidgenius_${j.id}.${isImg ? 'jpg' : 'mp4'}">⬇ Download</a>
+                <a class="btn-card-action primary" href="${toDownloadUrl(j.resultUrl)}" download="vidgenius_${j.id}.${isImg ? 'jpg' : 'mp4'}">⬇ Download</a>
                 <button class="btn-card-action danger" onclick="deleteCreation('${j.id}')" title="Delete this creation">🗑️</button>
               </div>
             </div>
