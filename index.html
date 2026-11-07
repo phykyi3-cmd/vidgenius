@@ -1833,9 +1833,10 @@
 
   function getThumbUrlForJob(j) {
     if (!j || !j.resultUrl) return '';
-    const isImg = j.resultType === 'image' || j.resultUrl.endsWith('.jpg') || j.resultUrl.endsWith('.png');
+    const cleanUrl = j.resultUrl.split('?')[0];
+    const isImg = j.resultType === 'image' || cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.png');
     if (isImg) return apiUrl(j.resultUrl);
-    const fname = j.resultUrl.split('/').pop() || '';
+    const fname = cleanUrl.split('/').pop() || '';
     const thumbName = 'thumb_' + fname.replace(/\.mp4$/i, '.jpg');
     return apiUrl('/api/media/' + thumbName);
   }
@@ -2080,6 +2081,7 @@
       }
       if (typeof data.creditsRemaining === 'number') {
         creditsRemaining = data.creditsRemaining;
+        localStorage.setItem('vidgenius_cached_credits', String(creditsRemaining));
         document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
       }
       const incoming = data.recentJobs || [];
@@ -2100,6 +2102,9 @@
       const nextSig = JSON.stringify(incoming.map(j => `${j.id}:${j.status}:${j.resultUrl}`));
 
       allJobs = incoming;
+      try {
+        localStorage.setItem('vidgenius_cached_jobs', JSON.stringify(allJobs.slice(0, 30)));
+      } catch {}
       if (prevSig !== nextSig) {
         renderStudio();
       } else if (hasPending) {
