@@ -1203,7 +1203,10 @@
   // Works permanently on https://phykyi3-cmd.github.io/vidgenius/ , file:// Desktop App, and localhost
   const GIST_API_URL = 'https://api.github.com/gists/01683bfcd4c3f5e6552ff3036136e465';
   const BEACON_URL = 'https://ntfy.sh/vidgenius_sagawar_live_2eb7b86d/json?poll=1&since=12h';
-  const IS_STATIC_HOST = !window.location.protocol.startsWith('http') || window.location.hostname.endsWith('github.io');
+  const IS_STATIC_HOST =
+    !window.location.protocol.startsWith('http') ||
+    window.location.hostname.endsWith('github.io') ||
+    window.location.hostname.includes('smartmyanmarfonts.com');
   const FALLBACK_SERVERS = (window.__VIDGENIUS_SERVERS__ && window.__VIDGENIUS_SERVERS__.length)
     ? window.__VIDGENIUS_SERVERS__
     : [
