@@ -1101,6 +1101,35 @@
       </div>
     </div>
 
+    <!-- Live Flow AI Synchronized Rendering Banner (Appears automatically when generating) -->
+    <div id="liveRenderBanner" style="display:none; width:min(820px, 100%); margin-top:18px; background:linear-gradient(135deg, rgba(30, 27, 75, 0.96), rgba(76, 29, 149, 0.95)); color:#fff; border-radius:22px; padding:18px 22px; box-shadow:0 18px 42px rgba(76, 29, 149, 0.28); border:1px solid rgba(196, 181, 253, 0.35); text-align:left;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div class="render-spinner" style="width:34px; height:34px; margin-bottom:0; border-width:3px; flex-shrink:0;"></div>
+          <div>
+            <div id="bannerTitle" style="font-size:14.5px; font-weight:800; color:#fff;">🎬 Google Flow AI ဖြင့် ဗီဒီယို ထုတ်ပေးနေပါသည် · ခဏစောင့်ပေးပါ...</div>
+            <div id="bannerSub" style="font-size:12px; color:#ddd6fe; margin-top:2px;">Flow AI သို့ ချိတ်ဆက်ပေးပို့နေပါသည်...</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span id="bannerPct" style="font-size:24px; font-weight:900; background:linear-gradient(135deg,#c084fc,#38bdf8); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">5%</span>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div style="width:100%; height:8px; background:rgba(255,255,255,0.16); border-radius:999px; overflow:hidden; margin-bottom:12px;">
+        <div id="bannerBar" style="height:100%; width:5%; background:linear-gradient(90deg, #8b5cf6, #ec4899, #38bdf8); border-radius:999px; transition:width 0.6s ease;"></div>
+      </div>
+
+      <!-- 3-Step Live Stage Pills + Time Estimate & Countdown -->
+      <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; font-size:12px;">
+        <div id="bannerSteps" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;"></div>
+        <div id="bannerTimeBox" style="background:rgba(15, 23, 42, 0.45); border:1px solid rgba(255,255,255,0.16); padding:6px 12px; border-radius:999px; color:#f8fafc; font-weight:700;">
+          ⏱️ စုစုပေါင်း ~75s · ⏳ နောက် ~70 စက္ကန့်အတွင်း ရပါမည်
+        </div>
+      </div>
+    </div>
+
     <!-- Fanned Showcase Strip (Matches VIDGENIUS Bottom Cards) -->
     <div class="showcase-fan" id="showcaseFan"></div>
   </section>
@@ -1771,7 +1800,92 @@
     return apiUrl('/api/media/' + thumbName);
   }
 
+  function getJobTimingAndProgress(j) {
+    const isImg = j.taskType === 'image' || j.subMode === 'text-to-image';
+    const dur = Number(j.durationSeconds) || 8;
+    const batch = Number(j.imageCount) || 1;
+    // Calculate queue position among pending jobs (oldest pending job is #1)
+    const pendingList = allJobs
+      .filter(x => x.status === 'waiting_mac_flow' || x.status === 'processing' || x.status === 'queued')
+      .slice()
+      .reverse();
+    const qIdx = Math.max(0, pendingList.findIndex(x => x.id === j.id));
+
+    // Realistic total time estimate (with a slight +8s safety buffer so UI never finishes ahead of Flow AI)
+    let estTotalSec = isImg
+      ? 28 + (batch - 1) * 8
+      : (j.resolution === '720p' ? 68 : 56) + Math.max(0, (dur - 5) * 3) + (batch - 1) * 14;
+    if (j.model === 'veo-3.1-quality') estTotalSec += 25;
+    estTotalSec += qIdx * 60;
+
+    const elapsed = Math.max(1, Math.round((Date.now() - (j.createdAt || Date.now())) / 1000));
+    const serverProg = Number(j.progress) || 5;
+
+    // Smooth conservative time curve capped at 84% (85-98% is only triggered when Flow AI actually finishes & starts downloading!)
+    const timeCurvePct = Math.min(84, Math.max(4, Math.floor((elapsed / estTotalSec) * 82)));
+    let pct = serverProg >= 88
+      ? Math.min(98, Math.max(serverProg, 89 + Math.min(8, Math.floor((elapsed % 12) * 0.7))))
+      : Math.min(86, Math.max(serverProg, timeCurvePct));
+
+    // Estimate remaining seconds synced with buffered progress
+    const rawRemain = Math.max(4, estTotalSec - elapsed);
+    const remainSec = pct >= 89 ? Math.min(8, Math.max(3, rawRemain)) : rawRemain;
+
+    let stageStep = 1; // 1 = Sending to Flow AI, 2 = Rendering on Flow AI, 3 = Downloading to Phone
+    if (pct >= 88) stageStep = 3;
+    else if (pct >= 15) stageStep = 2;
+
+    const stageLabel = stageStep === 1
+      ? 'Flow AI သို့ Prompt နှင့် Setting ပေးပို့နေပါသည်...'
+      : stageStep === 2
+      ? (j.message && j.message.includes('Flow AI') ? j.message : 'Google Flow AI တွင် ဗီဒီယို ထုတ်နေပါသည်...')
+      : 'Flow AI ထုတ်ပြီးပါပြီ! သင့်ထံသို့ ဗီဒီယို ဒေါင်းလုဒ်ပို့ပေးနေပါသည်...';
+
+    const remainText = pct >= 88
+      ? `✨ Flow AI ထုတ်ပြီးပါပြီ! နောက် ~${remainSec} စက္ကန့်အတွင်း ရပါမည်`
+      : qIdx > 0
+      ? `⏳ အလှည့်စောင့်ဆိုင်းနေသည် (#${qIdx + 1}) · နောက် ~${remainSec} စက္ကန့်အတွင်း ရပါမည်`
+      : `⏳ နောက် ~${remainSec} စက္ကန့်အတွင်း ရပါမည် (စုစုပေါင်း ~${estTotalSec}s)`;
+
+    return { estTotalSec, elapsed, pct, remainSec, stageStep, stageLabel, remainText, isImg };
+  }
+
+  function updateLiveRenderBanner() {
+    const banner = document.getElementById('liveRenderBanner');
+    if (!banner) return;
+    const pendingList = allJobs
+      .filter(x => x.status === 'waiting_mac_flow' || x.status === 'processing' || x.status === 'queued')
+      .slice()
+      .reverse();
+    if (pendingList.length === 0) {
+      banner.style.display = 'none';
+      return;
+    }
+    banner.style.display = 'block';
+    const activeJob = pendingList[0];
+    const info = getJobTimingAndProgress(activeJob);
+
+    document.getElementById('bannerTitle').textContent = info.isImg
+      ? '✨ Google Flow AI ဖြင့် ပုံထုတ်ပေးနေပါသည် · ခဏစောင့်ပေးပါ...'
+      : `🎬 Google Flow AI (${activeJob.modelLabel || 'Omni Flash'}) ဖြင့် ဗီဒီယို ထုတ်ပေးနေပါသည် · ခဏစောင့်ပေးပါ...`;
+    document.getElementById('bannerSub').textContent = info.stageLabel;
+    document.getElementById('bannerPct').textContent = info.pct + '%';
+    document.getElementById('bannerBar').style.width = info.pct + '%';
+    document.getElementById('bannerTimeBox').textContent =
+      `⏱️ စုစုပေါင်း ~${info.estTotalSec}s · လက်ရှိ ${info.elapsed}s · ✨ နောက် ~${info.remainSec} စက္ကန့်အတွင်း ရပါမည်`;
+
+    const s1 = info.stageStep > 1 ? '✓' : '●';
+    const s2 = info.stageStep > 2 ? '✓' : info.stageStep === 2 ? '●' : '○';
+    const s3 = info.stageStep === 3 ? '●' : '○';
+    document.getElementById('bannerSteps').innerHTML = `
+      <span style="padding:4px 10px; border-radius:999px; background:${info.stageStep === 1 ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.1)'};">${s1} 1. Flow AI သို့ပို့ခြင်း</span>
+      <span style="padding:4px 10px; border-radius:999px; background:${info.stageStep === 2 ? 'rgba(139,92,246,0.45)' : 'rgba(255,255,255,0.1)'};">${s2} 2. Flow AI တွင်ထုတ်ခြင်း</span>
+      <span style="padding:4px 10px; border-radius:999px; background:${info.stageStep === 3 ? 'rgba(16,185,129,0.45)' : 'rgba(255,255,255,0.1)'};">${s3} 3. ဖုန်းသို့ပို့ပေးခြင်း</span>
+    `;
+  }
+
   function renderStudio() {
+    updateLiveRenderBanner();
     // 1. Render Top Fanned Showcase (up to 5 completed items using lightweight ~18KB thumbnails for instant load!)
     const fan = document.getElementById('showcaseFan');
     const completed = allJobs.filter(j => j.status === 'completed' && j.resultUrl).slice(0, 5);
@@ -1799,8 +1913,7 @@
       const ratioClass = j.aspectRatio === '16:9' ? 'landscape' : j.aspectRatio === '1:1' ? 'square' : '';
 
       if (isPending) {
-        const elapsed = Math.max(1, Math.round((Date.now() - (j.createdAt || Date.now())) / 1000));
-        const pct = Math.min(96, Math.max(j.progress || 25, Math.min(92, 20 + Math.floor(elapsed * 1.2))));
+        const info = getJobTimingAndProgress(j);
         const inUrl = j.inputImageUrl ? apiUrl(j.inputImageUrl) : '';
         return `
           <div class="creation-card" id="card-${j.id}">
@@ -1808,12 +1921,14 @@
               ${inUrl ? `<img src="${inUrl}" style="filter:blur(6px); opacity:0.4;" />` : ''}
               <div class="rendering-overlay">
                 <div class="render-spinner"></div>
-                <div class="render-pct" id="pct-${j.id}">${pct}%</div>
+                <div class="render-pct" id="pct-${j.id}">${info.pct}%</div>
                 <div class="render-label" id="lbl-${j.id}">
-                  Rendering on Google Flow AI...<br/>(${elapsed}s elapsed)
+                  <strong>ခဏစောင့်ပေးပါ...</strong><br/>
+                  ${info.stageLabel}<br/>
+                  <span style="color:#c4b5fd; font-weight:700; display:inline-block; margin-top:4px;">${info.remainText}</span>
                 </div>
                 <div class="render-bar">
-                  <div class="render-bar-fill" id="bar-${j.id}" style="width:${pct}%"></div>
+                  <div class="render-bar-fill" id="bar-${j.id}" style="width:${info.pct}%"></div>
                 </div>
               </div>
             </div>
