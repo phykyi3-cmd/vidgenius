@@ -1438,7 +1438,12 @@
   let currentMode = 'video'; // 'video' | 'image'
   let galleryFilter = 'all';
   let allJobs = [];
-  let creditsRemaining = 920;
+  try {
+    allJobs = JSON.parse(localStorage.getItem('vidgenius_cached_jobs') || '[]');
+  } catch {
+    allJobs = [];
+  }
+  let creditsRemaining = Number(localStorage.getItem('vidgenius_cached_credits')) || 920;
   let selectedPhoto = null;
   let currentLightboxJobId = null;
   let userPin = localStorage.getItem('sagawar_pin') || 'sagawar123';
