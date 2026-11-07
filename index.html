@@ -2207,11 +2207,15 @@
     }
   }
 
-  // Init
+  // Init (0.00s Instant Render from Cache + 1.2s Fast Live Polling)
+  document.getElementById('creditCount').textContent = creditsRemaining.toLocaleString();
   populateControlsForMode();
   recalculateCredits();
+  if (allJobs.length > 0) {
+    renderStudio();
+  }
   refreshAllJobs();
-  setInterval(refreshAllJobs, 2000);
+  setInterval(refreshAllJobs, 1200);
   setInterval(updatePendingCardsInPlace, 1000);
 </script>
 </body>
