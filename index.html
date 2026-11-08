@@ -2190,11 +2190,11 @@
           <div class="creation-media-wrap ${ratioClass}">
             ${hasBatch4
               ? `<div class="batch-4-grid">
-                  ${j.resultUrls.map(u => `<img src="${getThumbUrlForPath(u)}" onerror="handleMediaError(this, '${escapeHtml(u)}')" onclick="openLightbox('${apiUrl(u)}', true, '${j.id}')" loading="lazy" />`).join('')}
+                  ${j.resultUrls.map(u => `<img src="${getThumbUrlForPath(u)}" onerror="handleMediaError(this, '${escapeHtml(getThumbUrlForPath(u))}')" onload="this.style.opacity='1'; this.parentElement?.querySelector('.media-fallback-placeholder')?.remove();" onclick="openLightbox('${apiUrl(u)}', true, '${j.id}')" loading="lazy" />`).join('')}
                  </div>`
               : isImg
-              ? `<img src="${thumbUrl}" onerror="handleMediaError(this, '${escapeHtml(j.resultUrl)}')" onclick="openLightbox('${mediaUrl}', true, '${j.id}')" loading="lazy" />`
-              : `<video src="${mediaUrl}" poster="${thumbUrl}" muted loop playsinline preload="none" onmouseenter="this.play().catch(()=>{})" onmouseleave="this.pause()" onclick="openLightbox('${mediaUrl}', false, '${j.id}')"></video>`
+              ? `<img src="${thumbUrl}" onerror="handleMediaError(this, '${escapeHtml(thumbUrl)}')" onload="this.style.opacity='1'; this.parentElement?.querySelector('.media-fallback-placeholder')?.remove();" onclick="openLightbox('${mediaUrl}', true, '${j.id}')" loading="lazy" />`
+              : `<video src="${mediaUrl}" poster="${thumbUrl}" muted loop playsinline preload="none" onerror="handleMediaError(this, '${escapeHtml(mediaUrl)}')" onmouseenter="this.play().catch(()=>{})" onmouseleave="this.pause()" onclick="openLightbox('${mediaUrl}', false, '${j.id}')"></video>`
             }
           </div>
           <div class="creation-info">
