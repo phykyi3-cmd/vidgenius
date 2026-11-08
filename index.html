@@ -1871,14 +1871,18 @@
     }
   }
 
+  function getThumbUrlForPath(mediaPath) {
+    if (!mediaPath) return '';
+    const cleanUrl = mediaPath.split('?')[0];
+    const fname = cleanUrl.split('/').pop() || '';
+    if (!fname) return apiUrl(mediaPath);
+    const thumbName = 'thumb_' + fname.replace(/\.(mp4|jpg|jpeg|png)$/i, '.jpg');
+    return apiUrl('/api/media/' + thumbName);
+  }
+
   function getThumbUrlForJob(j) {
     if (!j || !j.resultUrl) return '';
-    const cleanUrl = j.resultUrl.split('?')[0];
-    const isImg = j.resultType === 'image' || cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.png');
-    if (isImg) return apiUrl(j.resultUrl);
-    const fname = cleanUrl.split('/').pop() || '';
-    const thumbName = 'thumb_' + fname.replace(/\.mp4$/i, '.jpg');
-    return apiUrl('/api/media/' + thumbName);
+    return getThumbUrlForPath(j.resultUrl);
   }
 
   function getJobTimingAndProgress(j) {
