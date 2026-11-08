@@ -2229,7 +2229,7 @@
       arrangedFan.splice(2, 0, heroItem);
     }
 
-    const currentFanSig = arrangedFan.map(j => `${j.id}:${j.status}:${j.resultUrl || ''}`).join('|');
+    const currentFanSig = `${API_BASE}|` + arrangedFan.map(j => `${j.id}:${j.status}:${j.resultUrl || ''}`).join('|');
     if (currentFanSig === lastFanSignature && fan.children.length === arrangedFan.length) {
       // Just update pending cards in place if any
       for (const j of arrangedFan) {
@@ -2253,7 +2253,7 @@
         const inUrl = j.inputImageUrl ? apiUrl(j.inputImageUrl) : '';
         return `
           <div class="fan-card" style="border-color:#8b5cf6; box-shadow:0 12px 28px rgba(139,92,246,0.38); background:#0f172a;" onclick="document.getElementById('card-${j.id}')?.scrollIntoView({behavior:'smooth', block:'center'})">
-            ${inUrl ? `<img src="${inUrl}" style="filter:blur(5px); opacity:0.38;" onerror="handleMediaError(this, '${escapeHtml(j.inputImageUrl)}')" />` : ''}
+            ${inUrl ? `<img src="${inUrl}" style="filter:blur(5px); opacity:0.38;" onerror="handleMediaError(this, '${escapeHtml(inUrl)}')" />` : ''}
             <div style="position:absolute; inset:0; background:rgba(15,23,42,0.72); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:8px; text-align:center; color:#fff;">
               <div class="render-spinner" style="width:24px; height:24px; border-width:2.5px; margin-bottom:4px;"></div>
               <div id="fan-pct-${j.id}" style="font-size:16px; font-weight:900; color:#c4b5fd;">${info.pct}%</div>
@@ -2278,7 +2278,7 @@
         <div class="fan-card" style="${isNewestCompleted ? 'border-color:#8b5cf6; box-shadow:0 12px 28px rgba(139,92,246,0.3);' : ''}" onclick="openLightbox('${mediaUrl}', ${isImg}, '${j.id}')">
           ${!isImg && isNewestCompleted
             ? `<video src="${mediaUrl}" poster="${thumbUrl}" autoplay muted loop playsinline style="width:100%; height:100%; object-fit:cover;"></video>`
-            : `<img src="${thumbUrl}" loading="lazy" onerror="handleMediaError(this, '${escapeHtml(j.resultUrl)}')" />`
+            : `<img src="${thumbUrl}" loading="lazy" onerror="handleMediaError(this, '${escapeHtml(thumbUrl)}')" onload="this.style.opacity='1'; this.parentElement?.querySelector('.media-fallback-placeholder')?.remove();" />`
           }
           ${isNewestCompleted ? `<div style="position:absolute; bottom:5px; left:5px; right:5px; background:rgba(15,23,42,0.8); color:#fff; font-size:9.5px; font-weight:800; padding:2px 6px; border-radius:999px; text-align:center; backdrop-filter:blur(4px);">✨ အသစ်ထုတ်ပြီး · နှိပ်ကြည့်ပါ</div>` : ''}
         </div>
