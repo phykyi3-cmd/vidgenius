@@ -2208,8 +2208,7 @@
   async function refreshAllJobs() {
     try {
       const targetInfoUrl = apiUrl('/api/info');
-      const headers = targetInfoUrl.includes('pinggy') ? { 'X-Pinggy-No-Screen': 'true' } : {};
-      const res = await fetchWithTimeout(targetInfoUrl, { headers }, 4500);
+      const res = await fetchWithTimeout(targetInfoUrl, {}, 4500);
       const data = await res.json();
       if (data.uiVersion) {
         if (lastUiVersion && lastUiVersion !== data.uiVersion) {
