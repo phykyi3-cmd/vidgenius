@@ -2301,72 +2301,99 @@
     `;
   }
 
-  function buildCardHtml(j) {
-    const isPending = j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued';
-    const ratioClass = j.aspectRatio === '16:9' ? 'landscape' : j.aspectRatio === '1:1' ? 'square' : '';
+  function buildCardHtml(item) {
+    const isPending = item.status === 'waiting_mac_flow' || item.status === 'processing' || item.status === 'queued';
+    const isLandscape = item.aspectRatio === '16:9';
+    const isSquare = item.aspectRatio === '1:1';
+    const ratioClass = isLandscape ? 'landscape' : (isSquare ? 'square' : 'portrait');
+    const cardId = item.cardId || item.id;
+    const parentId = item.parentJobId || item.id;
 
     if (isPending) {
-      const info = getJobTimingAndProgress(j);
-      const inUrl = j.inputImageUrl ? apiUrl(j.inputImageUrl) : '';
+      const info = getJobTimingAndProgress(item);
+      const inUrl = item.inputImageUrl ? apiUrl(item.inputImageUrl) : '';
       return `
-        <div class="creation-card" id="card-${j.id}">
+        <div class="creation-card ${isLandscape ? 'landscape-card' : ''}" id="card-${cardId}">
           <div class="creation-media-wrap ${ratioClass}">
-            ${inUrl ? `<img src="${inUrl}" style="filter:blur(6px); opacity:0.4;" onerror="handleMediaError(this, '${escapeHtml(j.inputImageUrl)}')" />` : ''}
+            ${inUrl ? `<img src="${inUrl}" style="filter:blur(6px); opacity:0.4;" onerror="handleMediaError(this, '${escapeHtml(item.inputImageUrl)}')" />` : ''}
             <div class="rendering-overlay">
               <div class="render-spinner"></div>
-              <div class="render-pct" id="pct-${j.id}">${info.pct}%</div>
-              <div class="render-label" id="lbl-${j.id}">
+              <div class="render-pct" id="pct-${item.id}">${info.pct}%</div>
+              <div class="render-label" id="lbl-${item.id}">
                 <strong>ခဏစောင့်ပေးပါ...</strong><br/>
                 ${info.stageLabel}<br/>
                 <span style="color:#c4b5fd; font-weight:700; display:inline-block; margin-top:4px;">${info.remainText}</span>
               </div>
               <div class="render-bar">
-                <div class="render-bar-fill" id="bar-${j.id}" style="width:${info.pct}%"></div>
+                <div class="render-bar-fill" id="bar-${item.id}" style="width:${info.pct}%"></div>
               </div>
             </div>
           </div>
           <div class="creation-info">
             <div class="creation-badges">
-              <span>${escapeHtml(j.modelLabel || 'Google Flow AI')}</span>
-              <span>${j.durationSeconds || 8}s · ${j.resolution || '720p'} · ⚡ ${j.creditCost || 0} Cr</span>
+              <span>${escapeHtml(item.modelLabel || 'Google Flow AI')}</span>
+              <span>${item.durationSeconds || 8}s · ${item.resolution || '720p'} · ⚡ ${item.creditCost || 0} Cr</span>
             </div>
-            <div class="creation-prompt">${escapeHtml(j.prompt || '')}</div>
+            <div class="creation-prompt">${escapeHtml(item.prompt || '')}</div>
             <div class="creation-actions">
-              <button class="btn-card-action danger" style="flex:1;" onclick="deleteCreation('${j.id}')">🗑️ Cancel & Delete</button>
+              <button class="btn-card-action danger" style="flex:1; width:100%; border-radius:999px;" onclick="deleteCreation('${parentId}')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                <span>Cancel & Delete</span>
+              </button>
             </div>
           </div>
         </div>
       `;
     }
 
-    if (j.status === 'completed' && j.resultUrl) {
-      const cleanUrl = (j.resultUrl || '').split('?')[0];
-      const isImg = j.resultType === 'image' || cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.png');
-      const hasBatch4 = isImg && Array.isArray(j.resultUrls) && j.resultUrls.length > 1;
-      const mediaUrl = apiUrl(j.resultUrl);
-      const thumbUrl = getThumbUrlForJob(j);
+    if (item.status === 'completed') {
+      const targetUrl = item.singleResultUrl || item.resultUrl;
+      if (!targetUrl) return '';
+      const cleanUrl = targetUrl.split('?')[0];
+      const isImg = item.resultType === 'image' || cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.png');
+      const mediaUrl = apiUrl(targetUrl);
+      const thumbUrl = getThumbUrlForPath(targetUrl);
+      const dlUrl = toDownloadUrl(targetUrl);
+      const dlName = `vidgenius_${parentId}${item.subIndex !== undefined ? '_' + (item.subIndex + 1) : ''}.${isImg ? 'jpg' : 'mp4'}`;
+
+      let badgeLeft = escapeHtml(item.modelLabel || (isImg ? 'Nano Banana' : 'Google Flow AI'));
+      let badgeRight = '';
+      if (isImg) {
+        if (item.subIndex !== undefined) {
+          badgeRight = `Photo ${item.subIndex + 1}/${item.totalInBatch} · ${escapeHtml(item.resolution || 'High')}`;
+        } else {
+          badgeRight = `FREE · ${escapeHtml(item.resolution || 'High')}`;
+        }
+      } else {
+        badgeRight = `${item.durationSeconds || 8}s · ${item.resolution || '720p'}${item.creditCost ? ' · ⚡ ' + item.creditCost + ' Cr' : ''}`;
+      }
+
       return `
-        <div class="creation-card" id="card-${j.id}">
-          <div class="creation-media-wrap ${ratioClass}" onclick="openLightbox('${mediaUrl}', ${isImg}, '${j.id}')" style="cursor:pointer;" title="Tap to preview">
-            ${hasBatch4
-              ? `<div class="batch-4-grid">
-                  ${j.resultUrls.map(u => `<img src="${getThumbUrlForPath(u)}" onerror="handleMediaError(this, '${escapeHtml(getThumbUrlForPath(u))}')" onload="this.style.opacity='1'; this.parentElement?.querySelector('.media-fallback-placeholder')?.remove();" onclick="event.stopPropagation(); openLightbox('${apiUrl(u)}', true, '${j.id}')" loading="lazy" />`).join('')}
-                 </div>`
-              : isImg
+        <div class="creation-card ${isLandscape ? 'landscape-card' : ''}" id="card-${cardId}">
+          <div class="creation-media-wrap ${ratioClass}" onclick="openLightbox('${mediaUrl}', ${isImg}, '${parentId}')" style="cursor:pointer;" title="Tap to preview">
+            ${isImg
               ? `<img src="${thumbUrl}" onerror="handleMediaError(this, '${escapeHtml(thumbUrl)}')" onload="this.style.opacity='1'; this.parentElement?.querySelector('.media-fallback-placeholder')?.remove();" loading="lazy" />`
               : `<video src="${mediaUrl}" poster="${thumbUrl}" muted loop playsinline preload="none" onerror="handleMediaError(this, '${escapeHtml(mediaUrl)}')" onmouseenter="this.play().catch(()=>{})" onmouseleave="this.pause()"></video>`
             }
           </div>
           <div class="creation-info">
             <div class="creation-badges">
-              <span>${escapeHtml(j.modelLabel || 'Google Flow AI')}</span>
-              <span>${isImg ? 'FREE · ' + (j.resultUrls?.length || 1) + 'x' : (j.durationSeconds || 8) + 's · ' + (j.resolution || '720p') + (j.creditCost ? ' · ⚡ ' + j.creditCost + ' Cr' : '')}</span>
+              <span>${badgeLeft}</span>
+              <span>${badgeRight}</span>
             </div>
-            <div class="creation-prompt">${escapeHtml(j.prompt || '')}</div>
+            <div class="creation-prompt">${escapeHtml(item.prompt || '')}</div>
             <div class="creation-actions">
-              <button class="btn-card-action" onclick="openLightbox('${mediaUrl}', ${isImg}, '${j.id}')">▶ Preview</button>
-              <a class="btn-card-action primary" href="${toDownloadUrl(j.resultUrl)}" download="vidgenius_${j.id}.${isImg ? 'jpg' : 'mp4'}">⬇ Download</a>
-              <button class="btn-card-action danger" onclick="deleteCreation('${j.id}')" title="Delete this creation">🗑️</button>
+              <button class="btn-card-action" onclick="openLightbox('${mediaUrl}', ${isImg}, '${parentId}')" title="Preview in fullscreen">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                <span>Preview</span>
+              </button>
+              <a class="btn-card-action primary" href="${dlUrl}" download="${dlName}" title="Save to device">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Save</span>
+              </a>
+              <button class="btn-card-action danger" onclick="deleteCreation('${parentId}')" title="Delete creation">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              </button>
             </div>
           </div>
         </div>
