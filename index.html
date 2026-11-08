@@ -1250,9 +1250,25 @@
         'https://qofmd-180-75-171-117.run.pinggy-free.link',
         'https://078403fa88160e.lhr.life'
       ];
-  let API_BASE = IS_STATIC_HOST ? FALLBACK_SERVERS[0] : '';
+  const storedServer = localStorage.getItem('vidgenius_last_server');
+  let API_BASE = (storedServer && FALLBACK_SERVERS.includes(storedServer))
+    ? storedServer
+    : (IS_STATIC_HOST ? FALLBACK_SERVERS[0] : '');
   let isDiscovering = false;
   let lastUiVersion = 0;
+  let lastRenderedApiBase = API_BASE;
+
+  function setApiBase(newUrl) {
+    if (!newUrl) return;
+    const cleanUrl = newUrl.replace(/\/+$/, '');
+    if (API_BASE === cleanUrl) return;
+    API_BASE = cleanUrl;
+    localStorage.setItem('vidgenius_last_server', API_BASE);
+    if (typeof renderStudio === 'function' && allJobs.length > 0) {
+      lastRenderedApiBase = API_BASE;
+      renderStudio();
+    }
+  }
 
   function fetchWithTimeout(url, opts = {}, ms = 4000) {
     const ctrl = new AbortController();
