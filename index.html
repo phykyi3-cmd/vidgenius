@@ -2237,14 +2237,12 @@
       }
       if (data.currentPinggyUrl) {
         if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
-          API_BASE = data.currentPinggyUrl;
-          localStorage.setItem('vidgenius_last_server', data.currentPinggyUrl);
+          setApiBase(data.currentPinggyUrl);
         }
       } else if (data.currentLhrUrl) {
         latestLhrUrl = data.currentLhrUrl;
         if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
-          API_BASE = data.currentLhrUrl;
-          localStorage.setItem('vidgenius_last_server', data.currentLhrUrl);
+          setApiBase(data.currentLhrUrl);
         }
       }
       if (
