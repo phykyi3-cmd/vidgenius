@@ -1251,8 +1251,9 @@
   const FALLBACK_SERVERS = (window.__VIDGENIUS_SERVERS__ && window.__VIDGENIUS_SERVERS__.length)
     ? window.__VIDGENIUS_SERVERS__
     : [
-        'https://qofmd-180-75-171-117.run.pinggy-free.link',
-        'https://755c5040ca7d2c.lhr.life'
+        'https://ceramic-idea-mumbai-revenue.trycloudflare.com',
+        'https://755c5040ca7d2c.lhr.life',
+        'https://qofmd-180-75-171-117.run.pinggy-free.link'
       ];
   const storedServer = localStorage.getItem('vidgenius_last_server');
   let API_BASE = (storedServer && FALLBACK_SERVERS.includes(storedServer))
@@ -1296,26 +1297,28 @@
     if (isDiscovering) return API_BASE;
     isDiscovering = true;
     try {
-      // 1. Fast 500ms probe for local Mac server (instant 0ms latency when opened on the Mac itself!)
-      try {
-        const localRes = await fetchWithTimeout('http://localhost:3030/api/info', {}, 500);
-        if (localRes.ok) {
-          const d = await localRes.json();
-          if (d && d.ok) {
-            const changed = API_BASE !== 'http://localhost:3030';
-            API_BASE = 'http://localhost:3030';
-            localStorage.setItem('vidgenius_last_server', API_BASE);
-            isDiscovering = false;
-            if (changed && typeof renderStudio === 'function' && allJobs.length > 0) renderStudio();
-            return API_BASE;
+      // 1. Fast probe for local Mac server ONLY if NOT on HTTPS site (to avoid mixed content block)
+      if (window.location.protocol !== 'https:') {
+        try {
+          const localRes = await fetchWithTimeout('http://localhost:3030/api/info', {}, 500);
+          if (localRes.ok) {
+            const d = await localRes.json();
+            if (d && d.ok) {
+              const changed = API_BASE !== 'http://localhost:3030';
+              API_BASE = 'http://localhost:3030';
+              localStorage.setItem('vidgenius_last_server', API_BASE);
+              isDiscovering = false;
+              if (changed && typeof renderStudio === 'function' && allJobs.length > 0) renderStudio();
+              return API_BASE;
+            }
           }
-        }
-      } catch {}
+        } catch {}
+      }
 
       const candidates = [];
       const parsedList = [];
       const collectParsed = (parsed) => {
-        if (parsed && (parsed.lhr || parsed.pinggy)) {
+        if (parsed && (parsed.cf || parsed.lhr || parsed.pinggy)) {
           parsedList.push({ ...parsed, ts: Number(parsed.ts) || 0 });
         }
       };
@@ -1361,8 +1364,9 @@
       // Sort newest timestamp first!
       parsedList.sort((a, b) => b.ts - a.ts);
       for (const p of parsedList) {
-        if (p.pinggy && !candidates.includes(p.pinggy)) candidates.push(p.pinggy);
+        if (p.cf && !candidates.includes(p.cf)) candidates.push(p.cf);
         if (p.lhr && !candidates.includes(p.lhr)) candidates.push(p.lhr);
+        if (p.pinggy && !candidates.includes(p.pinggy)) candidates.push(p.pinggy);
       }
 
       const allToTry = [...candidates, ...FALLBACK_SERVERS];
@@ -1383,6 +1387,56 @@
   }
   if (IS_STATIC_HOST) {
     discoverLiveTunnelFromBeacon();
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function handleMediaError(el, origRelPath) {
+    if (!el || !origRelPath) return;
+    const currentTry = Number(el.dataset.tryCount || 0);
+    el.dataset.tryCount = String(currentTry + 1);
+
+    const cleanPath = origRelPath.split('?')[0];
+    const filename = cleanPath.split('/').pop() || '';
+    const isThumb = filename.startsWith('thumb_');
+
+    const candidateBases = Array.from(new Set([
+      ...FALLBACK_SERVERS,
+      latestLhrUrl,
+      API_BASE
+    ].filter(Boolean)));
+
+    if (currentTry < candidateBases.length) {
+      const base = candidateBases[currentTry];
+      el.src = base + (origRelPath.startsWith('/') ? origRelPath : '/' + origRelPath);
+      return;
+    }
+
+    if (isThumb && currentTry === candidateBases.length) {
+      const fullFilename = filename.replace('thumb_', '');
+      const fullRelPath = '/api/media/' + fullFilename;
+      el.src = (candidateBases[0] || API_BASE) + fullRelPath;
+      return;
+    }
+
+    // Graceful fallback so it NEVER shows an ugly browser broken image icon
+    el.style.opacity = '0';
+    const parent = el.parentElement;
+    if (parent && !parent.querySelector('.media-fallback-placeholder')) {
+      const ph = document.createElement('div');
+      ph.className = 'media-fallback-placeholder';
+      ph.style.cssText = 'position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg, #1e1b4b, #312e81); color:#c4b5fd; font-size:11px; font-weight:700; text-align:center; padding:8px;';
+      ph.innerHTML = '<div style="font-size:18px; margin-bottom:4px;">✨</div><div>Preview Loading...</div>';
+      parent.appendChild(ph);
+    }
   }
 
   function apiUrl(path) {
