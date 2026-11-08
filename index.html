@@ -2201,13 +2201,16 @@
     }
   }
 
-  let latestLhrUrl = '';
-  let lastRenderedApiBase = '';
+  let isRefreshingJobs = false;
+  let consecutivePollFails = 0;
   async function refreshAllJobs() {
+    if (isRefreshingJobs) return;
+    isRefreshingJobs = true;
     try {
       const targetInfoUrl = apiUrl('/api/info');
       const res = await fetchWithTimeout(targetInfoUrl, {}, 4500);
       const data = await res.json();
+      consecutivePollFails = 0;
       if (data.uiVersion) {
         if (lastUiVersion && lastUiVersion !== data.uiVersion) {
           lastUiVersion = data.uiVersion;
@@ -2245,12 +2248,18 @@
       const incoming = data.recentJobs || [];
       applyIncomingJobsUpdate(incoming, data.creditsRemaining);
     } catch (e) {
-      // If primary tunnel switched, automatically discover the new live tunnel from beacon
-      discoverLiveTunnelFromBeacon();
-      if (!window.location.protocol.startsWith('http') && FALLBACK_SERVERS.length > 1) {
-        const idx = FALLBACK_SERVERS.indexOf(API_BASE);
-        API_BASE = FALLBACK_SERVERS[(idx + 1) % FALLBACK_SERVERS.length];
+      consecutivePollFails++;
+      // Only switch tunnel if 4 consecutive requests fail to prevent flickering
+      if (consecutivePollFails >= 4) {
+        consecutivePollFails = 0;
+        discoverLiveTunnelFromBeacon();
+        if (!window.location.protocol.startsWith('http') && FALLBACK_SERVERS.length > 1) {
+          const idx = FALLBACK_SERVERS.indexOf(API_BASE);
+          API_BASE = FALLBACK_SERVERS[(idx + 1) % FALLBACK_SERVERS.length];
+        }
       }
+    } finally {
+      isRefreshingJobs = false;
     }
   }
 
