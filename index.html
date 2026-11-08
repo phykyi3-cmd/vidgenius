@@ -2027,12 +2027,37 @@
     const dl = document.getElementById('lightboxDlBtn');
     const delBtn = document.getElementById('lightboxDelBtn');
     if (delBtn) delBtn.style.display = currentLightboxJobId ? 'inline-flex' : 'none';
+
+    const job = allJobs.find(x => x.id === jobId);
+    const isLandscape = job?.aspectRatio === '16:9';
+    const isSquare = job?.aspectRatio === '1:1';
+    const ratioClass = isLandscape ? 'landscape' : (isSquare ? 'square' : 'portrait');
+    const posterUrl = job ? getThumbUrlForJob(job) : '';
+
     if (isImage) {
-      content.innerHTML = `<img class="lightbox-media" src="${fullUrl}" />`;
+      content.innerHTML = `<img class="lightbox-media ${ratioClass}" src="${fullUrl}" onerror="handleMediaError(this, '${escapeHtml(url)}')" />`;
       dl.download = `vidgenius_${jobId || 'image'}.jpg`;
     } else {
-      content.innerHTML = `<video class="lightbox-media" src="${fullUrl}" controls autoplay playsinline loop></video>`;
+      content.innerHTML = `
+        <div class="lightbox-video-wrap ${ratioClass}">
+          <video class="lightbox-media" src="${fullUrl}" poster="${posterUrl}" controls autoplay playsinline loop preload="auto" onerror="handleMediaError(this, '${escapeHtml(url)}')"></video>
+        </div>
+      `;
       dl.download = `vidgenius_${jobId || 'video'}.mp4`;
+
+      // Seamless Mobile Autoplay Policy Handler (mutes if mobile browser blocks audio autoplay)
+      setTimeout(() => {
+        const vid = content.querySelector('video');
+        if (vid) {
+          const playPromise = vid.play();
+          if (playPromise !== undefined) {
+            playPromise.catch(() => {
+              vid.muted = true;
+              vid.play().catch(() => {});
+            });
+          }
+        }
+      }, 50);
     }
     dl.href = toDownloadUrl(url);
     modal.classList.add('open');
