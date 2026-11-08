@@ -580,8 +580,9 @@
 
     .creations-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
       gap: 14px;
+      align-items: start;
     }
 
     .creation-card {
@@ -589,72 +590,55 @@
       border-radius: 16px;
       overflow: hidden;
       border: 1px solid var(--border);
-      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.05);
+      box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
       display: flex;
       flex-direction: column;
-      transition: transform 0.18s ease;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+      align-self: start;
     }
 
     .creation-card:hover {
       transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(124, 58, 237, 0.09);
+    }
+
+    .creation-card.landscape-card {
+      grid-column: span 2;
     }
 
     .creation-media-wrap {
       position: relative;
       width: 100%;
       aspect-ratio: 9 / 14;
-      max-height: 275px;
       background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
       overflow: hidden;
       cursor: pointer;
     }
 
+    .creation-media-wrap.portrait {
+      aspect-ratio: 9 / 14;
+    }
+
     .creation-media-wrap.landscape {
       aspect-ratio: 16 / 9;
-      max-height: 180px;
     }
 
     .creation-media-wrap.square {
       aspect-ratio: 1 / 1;
-      max-height: 220px;
+    }
+
+    .creation-media-wrap video,
+    .creation-media-wrap > img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+      transition: opacity 0.2s ease-in;
     }
 
     .creation-media-wrap video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-      transition: opacity 0.2s ease-in;
       pointer-events: none;
-    }
-
-    .creation-media-wrap > img,
-    .batch-4-grid img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
-      transition: opacity 0.2s ease-in;
-    }
-
-    /* 4-Image Batch Grid inside Creation Card */
-    .batch-4-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      grid-template-rows: 1fr 1fr;
-      gap: 2px;
-      width: 100%;
-      height: 100%;
-      background: #0f172a;
-    }
-
-    .batch-4-grid img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      cursor: pointer;
     }
 
     /* Live Rendering State inside Creation Card */
