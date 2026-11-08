@@ -1801,28 +1801,23 @@
     document.getElementById('liveRenderBanner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
     showToast(currentMode === 'image' ? '✨ Google Flow AI သို့ ပေးပို့နေပါသည်...' : '🎬 Google Flow AI သို့ ပေးပို့နေပါသည် · ခဏစောင့်ပေးပါ...');
 
-    // Build ordered list of candidate backend servers (no custom headers -> zero CORS preflight!)
+    // Build ordered list of candidate backend servers (Cloudflare tunnel preferred, no Mixed Content on HTTPS!)
     let serversToTry = IS_STATIC_HOST
       ? Array.from(new Set([API_BASE, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)))
       : [''];
 
-    // Put localhost or .lhr.life servers first because they have 0% CORS preflight/interstitial issues
     if (IS_STATIC_HOST) {
-      serversToTry.sort((a, b) => {
-        const score = (u) => (u.includes('localhost') ? 2 : u.includes('.lhr.life') ? 1 : 0);
-        return score(b) - score(a);
-      });
+      serversToTry = serversToTry.filter(u => rankServerUrl(u) > 0);
+      serversToTry.sort((a, b) => rankServerUrl(b) - rankServerUrl(a));
     }
 
     let lastErr = null;
     for (let pass = 0; pass < 2; pass++) {
       if (pass === 1 && IS_STATIC_HOST) {
         const discovered = await discoverLiveTunnelFromBeacon();
-        serversToTry = Array.from(new Set([discovered, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)));
-        serversToTry.sort((a, b) => {
-          const score = (u) => (u.includes('localhost') ? 2 : u.includes('.lhr.life') ? 1 : 0);
-          return score(b) - score(a);
-        });
+        serversToTry = Array.from(new Set([discovered, latestLhrUrl, ...FALLBACK_SERVERS].filter(Boolean)))
+          .filter(u => rankServerUrl(u) > 0);
+        serversToTry.sort((a, b) => rankServerUrl(b) - rankServerUrl(a));
       }
       for (const base of serversToTry) {
         try {
