@@ -2320,7 +2320,8 @@
     try {
       localStorage.setItem('vidgenius_cached_jobs', JSON.stringify(allJobs.slice(0, 30)));
     } catch {}
-    if (prevSig !== nextSig) {
+    if (prevSig !== nextSig || lastRenderedApiBase !== API_BASE) {
+      lastRenderedApiBase = API_BASE;
       renderStudio();
     } else if (hasPending) {
       updatePendingCardsInPlace();
