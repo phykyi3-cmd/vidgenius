@@ -2493,16 +2493,33 @@
       const parentId = item.parentJobId || item.id;
       const pText = item.prompt || '';
       const encodedPrompt = encodeURIComponent(pText);
+      const isImg = item.taskType === 'image' || (item.resultType === 'image');
+      const count = item.imageCount || 4;
       const isPolicy = Boolean(
         item.policyViolation ||
         (item.error && (item.error.includes('third_party') || item.error.includes('policy') || item.error.includes('safety') || item.error.includes('content_providers'))) ||
         (item.message && (item.message.includes('Third-party') || item.message.includes('Policy') || item.message.includes('စည်းမျဉ်း')))
       );
-      const titleText = isPolicy ? 'Prompt မူဝါဒ သတိပေးချက်' : 'ဖန်တီးမှု မအောင်မြင်ပါ';
-      const subTitle = isPolicy ? 'Policy / Copyright Notice' : 'Generation Error';
-      const descText = item.message || (isPolicy
-        ? 'Google Flow AI ၏ Third-party Content / Policy စည်းမျဉ်းအရ ဤ Prompt ဖြင့် ဖန်တီး၍ မရနိုင်ပါ။ Prompt စာသားကို ပြန်လည် ပြင်ဆင်ပေးပါရန် မေတ္တာရပ်ခံပါသည်။ (Credit မကုန်ပါ)'
-        : (item.error || 'ဖန်တီးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့ပါသည်'));
+
+      let titleText = '';
+      let subTitle = '';
+      let descText = '';
+
+      if (isPolicy) {
+        if (isImg) {
+          titleText = `⚠️ ဓာတ်ပုံ (${count}) ပုံစလုံး Policy ကြောင့် Error ဖြစ်သွားပါသည်`;
+          subTitle = `All ${count} Photos Blocked by Flow AI Policy`;
+          descText = `Google Flow AI ၏ မူပိုင်ခွင့်နှင့် စည်းမျဉ်းများ (Third-party Content Rights) အရ ဓာတ်ပုံ (${count}) ပုံစလုံးကို ဖန်တီးထုတ်လုပ်၍ မရနိုင်ပါ။\n\n💡 ကျေးဇူးပြု၍ Prompt ထဲရှိ လူသိများသော ဇာတ်ကောင်၊ အမှတ်တံဆိပ် သို့မဟုတ် စည်းမျဉ်းနှင့် ငြိစွန်းနိုင်သော စကားလုံးများကို ပြင်ဆင်ပြီး "Prompt ပြန်ပြင်မည်" ဖြင့် ပြန်လည် စမ်းသပ်ပေးပါခင်ဗျာ။ (သင်၏ Credit ကို လုံးဝ နှုတ်ယူထားခြင်း မရှိပါ)`;
+        } else {
+          titleText = '⚠️ ဗီဒီယို ဖန်တီးမှု Policy ကြောင့် Error ဖြစ်သွားပါသည်';
+          subTitle = 'Video Blocked by Content Policy';
+          descText = `Google Flow AI ၏ မူပိုင်ခွင့်နှင့် စည်းမျဉ်းများ (Third-party Content Rights) အရ ဤဗီဒီယိုကို ဖန်တီးထုတ်လုပ်၍ မရနိုင်ပါ။\n\n💡 ကျေးဇူးပြု၍ Prompt စာသားကို ပြင်ဆင်ပြီး "Prompt ပြန်ပြင်မည်" ဖြင့် ပြန်လည် စမ်းသပ်ပေးပါခင်ဗျာ။ (သင်၏ Credit ကို လုံးဝ နှုတ်ယူထားခြင်း မရှိပါ)`;
+        }
+      } else {
+        titleText = isImg ? `⚠️ ဓာတ်ပုံ (${count}) ပုံစလုံး Error ဖြစ်သွားပါသည်` : '⚠️ ဖန်တီးမှု မအောင်မြင်ပါ';
+        subTitle = 'Generation Error';
+        descText = item.message || item.error || 'ဖန်တီးရာတွင် အမှားအယွင်း ဖြစ်ပေါ်ခဲ့ပါသည်';
+      }
 
       return `
         <div class="creation-card failed-card ${isLandscape ? 'landscape-card' : ''}" id="card-${cardId}">
