@@ -1248,6 +1248,15 @@
     !window.location.protocol.startsWith('http') ||
     window.location.hostname.endsWith('github.io') ||
     window.location.hostname.includes('smartmyanmarfonts.com');
+  function rankServerUrl(u) {
+    if (!u) return -999;
+    if (window.location.protocol === 'https:' && (u.startsWith('http://') || u.includes('localhost'))) return -999;
+    if (u.includes('.trycloudflare.com')) return 100;
+    if (u.includes('.lhr.life')) return 50;
+    if (u.includes('localhost')) return window.location.protocol === 'https:' ? -999 : 20;
+    if (u.includes('pinggy')) return 10;
+    return 1;
+  }
   const FALLBACK_SERVERS = (window.__VIDGENIUS_SERVERS__ && window.__VIDGENIUS_SERVERS__.length)
     ? window.__VIDGENIUS_SERVERS__
     : [
@@ -1256,9 +1265,12 @@
         'https://qofmd-180-75-171-117.run.pinggy-free.link'
       ];
   const storedServer = localStorage.getItem('vidgenius_last_server');
-  let API_BASE = (storedServer && FALLBACK_SERVERS.includes(storedServer))
-    ? storedServer
-    : (IS_STATIC_HOST ? FALLBACK_SERVERS[0] : '');
+  let initialServer = (storedServer && rankServerUrl(storedServer) > 0) ? storedServer : '';
+  if (!initialServer || rankServerUrl(initialServer) < 50) {
+    const validFallbacks = FALLBACK_SERVERS.filter(s => rankServerUrl(s) > 0).sort((a, b) => rankServerUrl(b) - rankServerUrl(a));
+    if (validFallbacks.length > 0) initialServer = validFallbacks[0];
+  }
+  let API_BASE = IS_STATIC_HOST ? (initialServer || FALLBACK_SERVERS[0]) : '';
   let isDiscovering = false;
   let lastUiVersion = 0;
   let lastRenderedApiBase = API_BASE;
