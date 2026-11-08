@@ -2372,14 +2372,18 @@
         }
         lastUiVersion = data.uiVersion;
       }
-      if (data.currentPinggyUrl) {
+      if (data.currentCfUrl) {
         if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
-          setApiBase(data.currentPinggyUrl);
+          setApiBase(data.currentCfUrl);
         }
       } else if (data.currentLhrUrl) {
         latestLhrUrl = data.currentLhrUrl;
         if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
           setApiBase(data.currentLhrUrl);
+        }
+      } else if (data.currentPinggyUrl) {
+        if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
+          setApiBase(data.currentPinggyUrl);
         }
       }
       if (
