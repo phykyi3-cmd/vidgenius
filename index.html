@@ -1338,8 +1338,8 @@
       // Sort newest timestamp first!
       parsedList.sort((a, b) => b.ts - a.ts);
       for (const p of parsedList) {
-        if (p.lhr && !candidates.includes(p.lhr)) candidates.push(p.lhr);
         if (p.pinggy && !candidates.includes(p.pinggy)) candidates.push(p.pinggy);
+        if (p.lhr && !candidates.includes(p.lhr)) candidates.push(p.lhr);
       }
 
       const allToTry = [...candidates, ...FALLBACK_SERVERS];
