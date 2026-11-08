@@ -996,14 +996,18 @@
     .lightbox-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(9, 9, 11, 0.92);
-      backdrop-filter: blur(12px);
+      background: rgba(9, 9, 11, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       z-index: 150;
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
+      overflow-y: auto;
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
     }
 
     .lightbox-backdrop.open {
@@ -1011,7 +1015,7 @@
     }
 
     .lightbox-media {
-      max-height: 78vh;
+      max-height: 76vh;
       max-width: 92vw;
       width: 100%;
       height: 100%;
@@ -1023,6 +1027,8 @@
     img.lightbox-media {
       width: auto;
       height: auto;
+      max-height: 76vh;
+      max-width: 92vw;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
     }
 
@@ -1031,7 +1037,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      max-height: 78vh;
+      max-height: 76vh;
       max-width: 92vw;
       border-radius: 18px;
       overflow: hidden;
@@ -1041,20 +1047,49 @@
 
     .lightbox-video-wrap.portrait {
       aspect-ratio: 9 / 16;
-      width: min(88vw, 380px);
-      height: min(78vh, 675px);
+      height: min(72vh, 600px);
+      max-width: 90vw;
+      width: auto;
     }
 
     .lightbox-video-wrap.landscape {
       aspect-ratio: 16 / 9;
-      width: min(92vw, 720px);
-      height: min(75vh, 405px);
+      width: min(92vw, 760px);
+      max-height: 70vh;
+      height: auto;
     }
 
     .lightbox-video-wrap.square {
       aspect-ratio: 1 / 1;
       width: min(88vw, 420px);
-      height: min(75vh, 420px);
+      max-height: 70vh;
+      height: auto;
+    }
+
+    .lightbox-sound-pill {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+      z-index: 10;
+      transition: all 0.18s ease;
+    }
+
+    .lightbox-sound-pill:hover {
+      background: rgba(124, 58, 237, 0.85);
+      transform: scale(1.04);
     }
 
     .toast {
