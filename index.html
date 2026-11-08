@@ -2145,8 +2145,6 @@
         const hasBatch4 = isImg && Array.isArray(j.resultUrls) && j.resultUrls.length > 1;
         const mediaUrl = apiUrl(j.resultUrl);
         const thumbUrl = getThumbUrlForJob(j);
-        const autoPlayFirstTwo = idx < 2;
-
         return `
           <div class="creation-card" id="card-${j.id}">
             <div class="creation-media-wrap ${ratioClass}">
@@ -2156,7 +2154,7 @@
                    </div>`
                 : isImg
                 ? `<img src="${thumbUrl}" onerror="if(this.src!=='${mediaUrl}')this.src='${mediaUrl}'" onclick="openLightbox('${mediaUrl}', true, '${j.id}')" loading="lazy" />`
-                : `<video src="${mediaUrl}" poster="${thumbUrl}" ${autoPlayFirstTwo ? 'autoplay' : ''} muted loop playsinline preload="${autoPlayFirstTwo ? 'metadata' : 'none'}" onmouseenter="this.play().catch(()=>{})" onmouseleave="if(!${autoPlayFirstTwo})this.pause()" onclick="openLightbox('${mediaUrl}', false, '${j.id}')"></video>`
+                : `<video src="${mediaUrl}" poster="${thumbUrl}" muted loop playsinline preload="none" onmouseenter="this.play().catch(()=>{})" onmouseleave="this.pause()" onclick="openLightbox('${mediaUrl}', false, '${j.id}')"></video>`
               }
             </div>
             <div class="creation-info">
