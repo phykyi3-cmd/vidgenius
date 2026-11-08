@@ -1263,8 +1263,7 @@
   async function probeCandidateServer(baseUrl) {
     if (!baseUrl) return false;
     try {
-      const headers = baseUrl.includes('pinggy') ? { 'X-Pinggy-No-Screen': 'true' } : {};
-      const r = await fetchWithTimeout(baseUrl + '/api/info', { headers }, 3500);
+      const r = await fetchWithTimeout(baseUrl + '/api/info', {}, 3500);
       if (!r.ok) return false;
       const d = await r.json();
       return Boolean(d && d.ok);
