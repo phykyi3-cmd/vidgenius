@@ -1261,8 +1261,7 @@
     ? window.__VIDGENIUS_SERVERS__
     : [
         'https://ceramic-idea-mumbai-revenue.trycloudflare.com',
-        'https://755c5040ca7d2c.lhr.life',
-        'https://qofmd-180-75-171-117.run.pinggy-free.link'
+        'https://otcnc-180-75-171-117.run.pinggy-free.link'
       ];
   const storedServer = localStorage.getItem('vidgenius_last_server');
   let initialServer = (storedServer && rankServerUrl(storedServer) > 0) ? storedServer : '';
@@ -1280,8 +1279,28 @@
     if (!newUrl) return;
     const cleanUrl = newUrl.replace(/\/+$/, '');
     if (API_BASE === cleanUrl) return;
+    const oldBase = API_BASE;
     API_BASE = cleanUrl;
     localStorage.setItem('vidgenius_last_server', API_BASE);
+
+    // Immediately update src/poster of existing DOM media elements so they don't stay broken when live tunnel connects
+    if (oldBase) {
+      try {
+        document.querySelectorAll('img[src], video[src], video[poster]').forEach(el => {
+          if (el.tagName.toLowerCase() === 'img') {
+            if (el.src && el.src.includes(oldBase)) {
+              el.src = el.src.replace(oldBase, API_BASE);
+              el.style.opacity = '1';
+              el.parentElement?.querySelector('.media-fallback-placeholder')?.remove();
+            }
+          } else if (el.tagName.toLowerCase() === 'video') {
+            if (el.src && el.src.includes(oldBase)) el.src = el.src.replace(oldBase, API_BASE);
+            if (el.poster && el.poster.includes(oldBase)) el.poster = el.poster.replace(oldBase, API_BASE);
+          }
+        });
+      } catch {}
+    }
+
     if (typeof renderStudio === 'function' && allJobs.length > 0) {
       lastRenderedApiBase = API_BASE;
       renderStudio();
