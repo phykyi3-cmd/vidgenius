@@ -1366,8 +1366,7 @@
         if (!c || c.includes('localhost')) continue;
         if (!FALLBACK_SERVERS.includes(c)) FALLBACK_SERVERS.unshift(c);
         if (await probeCandidateServer(c)) {
-          API_BASE = c;
-          localStorage.setItem('vidgenius_last_server', API_BASE);
+          setApiBase(c);
           if (!IS_STATIC_HOST && window.location.hostname !== 'localhost' && !window.location.origin.includes(c.replace('https://', ''))) {
             window.location.replace(c);
           }
