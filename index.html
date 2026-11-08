@@ -2002,8 +2002,9 @@
   function updateLiveRenderBanner() {
     const banner = document.getElementById('liveRenderBanner');
     if (!banner) return;
+    const now = Date.now();
     const pendingList = allJobs
-      .filter(x => x.status === 'waiting_mac_flow' || x.status === 'processing' || x.status === 'queued')
+      .filter(x => (x.status === 'waiting_mac_flow' || x.status === 'processing' || x.status === 'queued') && (now - (x.createdAt || 0) < 300000))
       .slice()
       .reverse();
     if (pendingList.length === 0) {
