@@ -726,46 +726,69 @@
 
     .creation-actions {
       display: flex;
+      align-items: center;
       gap: 6px;
-      margin-top: 2px;
+      margin-top: 6px;
     }
 
     .btn-card-action {
       flex: 1;
-      height: 30px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      background: #f8fafc;
-      color: #1e293b;
-      font-size: 11.5px;
-      font-weight: 600;
+      height: 32px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: #ffffff;
+      color: #334155;
+      font-size: 11px;
+      font-weight: 700;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 5px;
       text-decoration: none;
       cursor: pointer;
+      padding: 0 8px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      transition: all 0.18s ease;
+    }
+
+    .btn-card-action:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+      color: #0f172a;
+      transform: translateY(-1px);
+      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
     }
 
     .btn-card-action.primary {
-      background: var(--grad-primary);
-      color: #fff;
+      background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+      color: #ffffff;
       border: none;
+      box-shadow: 0 3px 10px rgba(124, 58, 237, 0.28);
+    }
+
+    .btn-card-action.primary:hover {
+      background: linear-gradient(135deg, #6d28d9 0%, #9333ea 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);
     }
 
     .btn-card-action.danger {
-      flex: 0 0 auto;
-      padding: 0 11px;
-      background: #fef2f2;
-      color: #dc2626;
-      border-color: #fecaca;
-      transition: all 0.15s ease;
+      flex: 0 0 32px;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 999px;
+      background: #ffffff;
+      color: #94a3b8;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
     }
 
     .btn-card-action.danger:hover {
-      background: #dc2626;
-      color: #ffffff;
-      border-color: #dc2626;
+      background: #fef2f2;
+      color: #ef4444;
+      border-color: #fecaca;
+      box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
     }
 
     /* Confirmation Modal (Credit Cost & Specs Verification) */
