@@ -2216,14 +2216,17 @@
         }
         lastUiVersion = data.uiVersion;
       }
-      if (data.currentLhrUrl) {
+      if (data.currentPinggyUrl) {
+        if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
+          API_BASE = data.currentPinggyUrl;
+          localStorage.setItem('vidgenius_last_server', data.currentPinggyUrl);
+        }
+      } else if (data.currentLhrUrl) {
         latestLhrUrl = data.currentLhrUrl;
         if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
           API_BASE = data.currentLhrUrl;
           localStorage.setItem('vidgenius_last_server', data.currentLhrUrl);
         }
-      } else if (data.currentPinggyUrl && IS_STATIC_HOST && !API_BASE) {
-        localStorage.setItem('vidgenius_last_server', data.currentPinggyUrl);
       }
       if (
         window.location.hostname.endsWith('.lhr.life') &&
