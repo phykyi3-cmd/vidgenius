@@ -1027,15 +1027,22 @@
       .creations-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
+        align-items: start;
       }
       .creation-card {
-        border-radius: 13px;
+        border-radius: 14px;
       }
-      .creation-media-wrap {
-        max-height: 205px;
+      .creation-card.landscape-card {
+        grid-column: 1 / -1; /* Spans full width across both columns on mobile! */
+      }
+      .creation-media-wrap.portrait {
+        aspect-ratio: 9 / 14;
+      }
+      .creation-media-wrap.landscape {
+        aspect-ratio: 16 / 9;
       }
       .creation-info {
-        padding: 8px 8px;
+        padding: 9px 8px;
         gap: 4px;
       }
       .creation-badges {
@@ -1047,18 +1054,20 @@
         -webkit-line-clamp: 2;
       }
       .creation-actions {
-        gap: 4px;
-        margin-top: 4px;
+        gap: 5px;
+        margin-top: 5px;
       }
       .btn-card-action {
-        height: 28px;
+        height: 29px;
         font-size: 10px;
-        padding: 0 4px;
-        letter-spacing: -0.2px;
+        padding: 0 6px;
+        gap: 4px;
         white-space: nowrap;
       }
       .btn-card-action.danger {
-        flex: 0 0 28px;
+        flex: 0 0 29px;
+        width: 29px;
+        height: 29px;
       }
     }
   </style>
