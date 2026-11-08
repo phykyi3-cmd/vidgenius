@@ -2185,6 +2185,9 @@
       content.innerHTML = `
         <div class="lightbox-video-wrap ${ratioClass}">
           <video class="lightbox-media" src="${fullUrl}" poster="${posterUrl}" controls autoplay playsinline loop preload="auto" onerror="handleMediaError(this, '${escapeHtml(url)}')"></video>
+          <button class="lightbox-sound-pill" id="lightboxSoundToggle" onclick="toggleLightboxAudio(this)">
+            🔊 အသံဖွင့်မည်
+          </button>
         </div>
       `;
       dl.download = `vidgenius_${jobId || 'video'}.mp4`;
@@ -2205,6 +2208,21 @@
     }
     dl.href = toDownloadUrl(url);
     modal.classList.add('open');
+  }
+
+  function toggleLightboxAudio(btn) {
+    const modal = document.getElementById('lightboxModal');
+    const vid = modal?.querySelector('video');
+    if (!vid) return;
+    if (vid.muted) {
+      vid.muted = false;
+      vid.volume = 1.0;
+      vid.play().catch(() => {});
+      btn.innerHTML = '🔈 အသံပိတ်မည်';
+    } else {
+      vid.muted = true;
+      btn.innerHTML = '🔊 အသံဖွင့်မည်';
+    }
   }
 
   function closeLightbox() {
