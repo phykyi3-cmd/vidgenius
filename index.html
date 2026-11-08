@@ -2382,16 +2382,16 @@
         lastUiVersion = data.uiVersion;
       }
       if (data.currentCfUrl) {
-        if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
+        if (IS_STATIC_HOST || window.location.protocol === 'https:') {
           setApiBase(data.currentCfUrl);
         }
       } else if (data.currentLhrUrl) {
         latestLhrUrl = data.currentLhrUrl;
-        if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
+        if (IS_STATIC_HOST || window.location.protocol === 'https:') {
           setApiBase(data.currentLhrUrl);
         }
       } else if (data.currentPinggyUrl) {
-        if (IS_STATIC_HOST && API_BASE !== 'http://localhost:3030') {
+        if (IS_STATIC_HOST || window.location.protocol === 'https:') {
           setApiBase(data.currentPinggyUrl);
         }
       }
