@@ -914,10 +914,50 @@
     }
 
     .lightbox-media {
-      max-height: 76vh;
+      max-height: 78vh;
+      max-width: 92vw;
+      width: 100%;
+      height: 100%;
+      border-radius: 18px;
+      object-fit: contain;
+      background: #000;
+    }
+
+    img.lightbox-media {
+      width: auto;
+      height: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .lightbox-video-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      max-height: 78vh;
       max-width: 92vw;
       border-radius: 18px;
+      overflow: hidden;
+      background: #000;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    }
+
+    .lightbox-video-wrap.portrait {
+      aspect-ratio: 9 / 16;
+      width: min(88vw, 380px);
+      height: min(78vh, 675px);
+    }
+
+    .lightbox-video-wrap.landscape {
+      aspect-ratio: 16 / 9;
+      width: min(92vw, 720px);
+      height: min(75vh, 405px);
+    }
+
+    .lightbox-video-wrap.square {
+      aspect-ratio: 1 / 1;
+      width: min(88vw, 420px);
+      height: min(75vh, 420px);
     }
 
     .toast {
