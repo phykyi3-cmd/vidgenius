@@ -1941,6 +1941,7 @@
     const box = document.getElementById('justFinishedBanner');
     if (!box) return;
     const isImg = job.resultType === 'image' || job.resultUrl.split('?')[0].endsWith('.jpg') || job.resultUrl.split('?')[0].endsWith('.png');
+    const hasBatch4 = isImg && Array.isArray(job.resultUrls) && job.resultUrls.length > 1;
     const mediaUrl = apiUrl(job.resultUrl);
     const dlUrl = toDownloadUrl(job.resultUrl);
     const thumbUrl = getThumbUrlForJob(job);
@@ -1950,10 +1951,10 @@
       <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <span style="background:linear-gradient(135deg,#10b981,#059669); color:#fff; font-size:12px; font-weight:800; padding:5px 12px; border-radius:999px;">
-            ✨ ${isImg ? 'ဓာတ်ပုံ' : 'ဗီဒီယို'} Create လုပ်ပြီးပါပြီ!
+            ✨ ${isImg ? (hasBatch4 ? 'ဓာတ်ပုံ ၄ ပုံ (4x)' : 'ဓာတ်ပုံ') : 'ဗီဒီယို'} Create လုပ်ပြီးပါပြီ!
           </span>
           <span style="font-size:14px; font-weight:800; color:#1e293b;">
-            ${job.modelLabel || (isImg ? 'Nano Banana Pro' : 'Google Flow AI')} · ${isImg ? (job.resolution || 'High') : (job.durationSeconds || 8) + 's'} · ${isImg ? '' : (job.resolution || '720p') + ' · '} ${job.aspectRatio || '9:16'}
+            ${job.modelLabel || (isImg ? 'Nano Banana Pro' : 'Google Flow AI')} · ${isImg ? (hasBatch4 ? 'FREE · 4x' : (job.resolution || 'High')) : (job.durationSeconds || 8) + 's'} · ${isImg ? '' : (job.resolution || '720p') + ' · '} ${job.aspectRatio || '9:16'}
           </span>
         </div>
         <button onclick="closeJustFinishedBanner()" style="background:#fee2e2; color:#ef4444; border:1px solid #fecaca; width:34px; height:34px; border-radius:999px; cursor:pointer; font-weight:800; font-size:16px; display:flex; align-items:center; justify-content:center;" title="ပိတ်မည် / ရပ်မည်">✕</button>
@@ -1961,7 +1962,11 @@
 
       <!-- Large Centered Real Video / Image Player Right inside the Tool -->
       <div style="width:100%; background:#09090b; border-radius:18px; overflow:hidden; display:flex; align-items:center; justify-content:center; max-height:${isLandscape ? '380px' : '460px'}; box-shadow:0 12px 32px rgba(15,23,42,0.18);">
-        ${isImg
+        ${hasBatch4
+          ? `<div class="batch-4-grid" style="max-height:${isLandscape ? '380px' : '460px'};">
+              ${job.resultUrls.map(u => `<img src="${apiUrl(u)}" onclick="openLightbox('${apiUrl(u)}', true, '${job.id}')" loading="lazy" style="border-radius:8px;" />`).join('')}
+             </div>`
+          : isImg
           ? `<img src="${mediaUrl}" style="max-height:440px; max-width:100%; object-fit:contain;" />`
           : `<video id="justFinishedVideo" src="${mediaUrl}" poster="${thumbUrl}" controls autoplay loop playsinline style="max-height:${isLandscape ? '380px' : '460px'}; max-width:100%; border-radius:14px;"></video>`
         }
