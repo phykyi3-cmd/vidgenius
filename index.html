@@ -2148,10 +2148,10 @@
             <div class="creation-media-wrap ${ratioClass}">
               ${hasBatch4
                 ? `<div class="batch-4-grid">
-                    ${j.resultUrls.map(u => `<img src="${apiUrl(u)}" onclick="openLightbox('${apiUrl(u)}', true, '${j.id}')" loading="lazy" />`).join('')}
+                    ${j.resultUrls.map(u => `<img src="${getThumbUrlForPath(u)}" onerror="if(this.src!=='${apiUrl(u)}')this.src='${apiUrl(u)}'" onclick="openLightbox('${apiUrl(u)}', true, '${j.id}')" loading="lazy" />`).join('')}
                    </div>`
                 : isImg
-                ? `<img src="${mediaUrl}" onclick="openLightbox('${mediaUrl}', true, '${j.id}')" loading="lazy" />`
+                ? `<img src="${thumbUrl}" onerror="if(this.src!=='${mediaUrl}')this.src='${mediaUrl}'" onclick="openLightbox('${mediaUrl}', true, '${j.id}')" loading="lazy" />`
                 : `<video src="${mediaUrl}" poster="${thumbUrl}" ${autoPlayFirstTwo ? 'autoplay' : ''} muted loop playsinline preload="${autoPlayFirstTwo ? 'metadata' : 'none'}" onmouseenter="this.play().catch(()=>{})" onmouseleave="if(!${autoPlayFirstTwo})this.pause()" onclick="openLightbox('${mediaUrl}', false, '${j.id}')"></video>`
               }
             </div>
