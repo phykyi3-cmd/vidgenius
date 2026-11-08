@@ -1424,7 +1424,9 @@
       ...FALLBACK_SERVERS,
       latestLhrUrl,
       API_BASE
-    ].filter(Boolean)));
+    ].filter(Boolean)))
+      .filter(u => rankServerUrl(u) > 0)
+      .sort((a, b) => rankServerUrl(b) - rankServerUrl(a));
 
     if (currentTry < candidateBases.length) {
       const base = candidateBases[currentTry];
