@@ -2482,13 +2482,38 @@
       return true;
     });
 
+    // Flatten / Unroll batch photos so each individual photo is its own clean, beautiful card!
+    const displayItems = [];
+    filtered.forEach(j => {
+      const isImg = j.resultType === 'image' || (j.resultUrl && (j.resultUrl.endsWith('.jpg') || j.resultUrl.endsWith('.png')));
+      if (isImg && j.status === 'completed' && Array.isArray(j.resultUrls) && j.resultUrls.length > 1) {
+        j.resultUrls.forEach((u, i) => {
+          displayItems.push({
+            ...j,
+            cardId: `${j.id}_${i}`,
+            subIndex: i,
+            totalInBatch: j.resultUrls.length,
+            singleResultUrl: u,
+            parentJobId: j.id
+          });
+        });
+      } else {
+        displayItems.push({
+          ...j,
+          cardId: j.id,
+          singleResultUrl: j.resultUrl,
+          parentJobId: j.id
+        });
+      }
+    });
+
     const existingCards = new Map();
     for (const card of grid.querySelectorAll('.creation-card')) {
       const id = card.id.replace('card-', '');
       if (id) existingCards.set(id, card);
     }
 
-    const currentFilteredIds = new Set(filtered.map(j => j.id));
+    const currentFilteredIds = new Set(displayItems.map(item => item.cardId));
 
     // Remove cards no longer in the list
     for (const [id, el] of existingCards.entries()) {
@@ -2499,10 +2524,10 @@
     }
 
     // Reconcile cards in-place: NEVER recreate existing completed media elements!
-    filtered.forEach((j, idx) => {
-      let cardEl = existingCards.get(j.id);
-      const isPending = j.status === 'waiting_mac_flow' || j.status === 'processing' || j.status === 'queued';
-      const htmlContent = buildCardHtml(j);
+    displayItems.forEach((item, idx) => {
+      let cardEl = existingCards.get(item.cardId);
+      const isPending = item.status === 'waiting_mac_flow' || item.status === 'processing' || item.status === 'queued';
+      const htmlContent = buildCardHtml(item);
 
       if (!cardEl) {
         const temp = document.createElement('div');
@@ -2522,10 +2547,10 @@
           cardEl.outerHTML = htmlContent.trim();
         } else if (isPending) {
           // Update timers in-place
-          const info = getJobTimingAndProgress(j);
-          const pct = cardEl.querySelector('#pct-' + j.id);
-          const lbl = cardEl.querySelector('#lbl-' + j.id);
-          const bar = cardEl.querySelector('#bar-' + j.id);
+          const info = getJobTimingAndProgress(item);
+          const pct = cardEl.querySelector('#pct-' + item.id);
+          const lbl = cardEl.querySelector('#lbl-' + item.id);
+          const bar = cardEl.querySelector('#bar-' + item.id);
           if (pct) pct.textContent = info.pct + '%';
           if (lbl) {
             lbl.innerHTML = `<strong>ခဏစောင့်ပေးပါ...</strong><br/>${info.stageLabel}<br/><span style="color:#c4b5fd; font-weight:700; display:inline-block; margin-top:4px;">${info.remainText}</span>`;
