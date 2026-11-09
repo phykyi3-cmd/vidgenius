@@ -2018,29 +2018,99 @@
     }
   }
 
+  function autoExpandPrompt(el) {
+    const target = el || document.getElementById('promptInput');
+    if (!target) return;
+    target.style.height = 'auto';
+    const newH = Math.max(56, target.scrollHeight);
+    target.style.height = newH + 'px';
+  }
+
   function usePreset(txt) {
     const el = document.getElementById('promptInput');
     el.value = txt;
+    autoExpandPrompt(el);
     el.focus();
   }
 
-  function onPhotoSelected(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    selectedPhoto = file;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      document.getElementById('previewImg').src = ev.target.result;
-      document.getElementById('refThumbChip').classList.add('visible');
-    };
-    reader.readAsDataURL(file);
+  let selectedPhotos = [];
+
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function onPhotoSelected(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    for (const f of files) {
+      if (selectedPhotos.length >= 4) {
+        showToast('⚠️ Google Flow AI တွင် Reference Photo အများဆုံး ၄ ပုံသာ ထည့်သွင်းနိုင်ပါသည် (Max 4 photos)');
+        break;
+      }
+      const dataUrl = await readFileAsDataUrl(f);
+      selectedPhotos.push({
+        id: 'ref_' + Math.random().toString(36).substring(2, 9),
+        file: f,
+        dataUrl,
+        name: f.name,
+        sizeText: (f.size / 1024).toFixed(0) + 'KB',
+      });
+    }
+    e.target.value = '';
+    selectedPhoto = selectedPhotos[0]?.file || null;
+    renderRefPhotos();
+  }
+
+  function removePhoto(idx) {
+    selectedPhotos.splice(idx, 1);
+    selectedPhoto = selectedPhotos[0]?.file || null;
+    renderRefPhotos();
   }
 
   function clearPhoto() {
+    selectedPhotos = [];
     selectedPhoto = null;
-    document.getElementById('fileInput').value = '';
-    document.getElementById('previewImg').src = '';
-    document.getElementById('refThumbChip').classList.remove('visible');
+    const fi = document.getElementById('fileInput');
+    if (fi) fi.value = '';
+    renderRefPhotos();
+  }
+
+  function renderRefPhotos() {
+    const container = document.getElementById('refPhotosContainer');
+    const btn = document.getElementById('btnUploadRef');
+    const btnText = document.getElementById('btnUploadRefText');
+    if (!container) return;
+
+    container.innerHTML = selectedPhotos.map((p, idx) => `
+      <div class="ref-photo-chip" title="${escapeHtml(p.name)}">
+        <div style="position:relative; width:40px; height:40px;">
+          <img src="${p.dataUrl}" alt="Ref #${idx + 1}" />
+          <span class="ref-photo-num">#${idx + 1}</span>
+        </div>
+        <div class="ref-photo-info">
+          <span class="ref-photo-title">Photo #${idx + 1}</span>
+          <span class="ref-photo-meta">${p.sizeText}</span>
+        </div>
+        <button class="ref-photo-del" onclick="removePhoto(${idx})" title="Remove photo">✕</button>
+      </div>
+    `).join('');
+
+    if (btn && btnText) {
+      if (selectedPhotos.length >= 4) {
+        btn.style.opacity = '0.6';
+        btn.style.pointerEvents = 'none';
+        btnText.textContent = 'Max 4 Photos';
+      } else {
+        btn.style.opacity = '1';
+        btn.style.pointerEvents = 'auto';
+        btnText.textContent = selectedPhotos.length > 0 ? `+ Photo (${selectedPhotos.length}/4)` : '+ Photo';
+      }
+    }
   }
 
   function openConfirmModal() {
@@ -2053,6 +2123,10 @@
     const batch = document.getElementById('batchSelect').value;
     const cost = computeCurrentCost();
 
+    const refPhotosRow = selectedPhotos.length > 0
+      ? `<div class="spec-row"><span class="spec-label">Reference Photos</span><span class="spec-val" style="color:#7c3aed; font-weight:700;">📸 ${selectedPhotos.length} ပုံ (Flow AI Ingredients)</span></div>`
+      : '';
+
     const table = document.getElementById('confirmSpecTable');
     if (currentMode === 'image') {
       document.getElementById('confirmTitle').textContent = 'Create AI Images on Google Flow';
@@ -2060,6 +2134,7 @@
         <div class="spec-row"><span class="spec-label">Mode</span><span class="spec-val">AI Image (x${batch})</span></div>
         <div class="spec-row"><span class="spec-label">Model</span><span class="spec-val">${modelName}</span></div>
         <div class="spec-row"><span class="spec-label">Quality & Ratio</span><span class="spec-val">${qual} · ${ratio}</span></div>
+        ${refPhotosRow}
         <div class="spec-row highlight"><span class="spec-label">Credit Cost</span><span class="spec-val" style="color:#059669;">FREE (0 Credits)</span></div>
       `;
       document.getElementById('confirmBtnLabel').textContent = `✨ Generate x${batch} (Free)`;
@@ -2070,6 +2145,7 @@
         <div class="spec-row"><span class="spec-label">Video Type</span><span class="spec-val">${videoType} (x${batch})</span></div>
         <div class="spec-row"><span class="spec-label">Length & Resolution</span><span class="spec-val">${dur} sec · ${qual}</span></div>
         <div class="spec-row"><span class="spec-label">Aspect Ratio</span><span class="spec-val">${ratio}</span></div>
+        ${refPhotosRow}
         <div class="spec-row"><span class="spec-label">Your Balance</span><span class="spec-val">${creditsRemaining} → ${Math.max(0, creditsRemaining - cost)} Credits</span></div>
         <div class="spec-row highlight"><span class="spec-label">Flow AI Cost</span><span class="spec-val">⚡ ${cost} Credits</span></div>
       `;
@@ -2100,7 +2176,12 @@
     fd.append('resolution', qual);
     fd.append('imageCount', String(batch));
     fd.append('creditCost', String(cost));
-    if (selectedPhoto) fd.append('image', selectedPhoto);
+    for (const p of selectedPhotos) {
+      fd.append('images', p.file);
+    }
+    if (selectedPhotos.length > 0) {
+      fd.append('image', selectedPhotos[0].file);
+    }
     return fd;
   }
 
@@ -2121,7 +2202,7 @@
     const qual = document.getElementById('qualitySelect').value;
     const batch = Number(document.getElementById('batchSelect').value) || 1;
     const cost = computeCurrentCost();
-    const previewImgSrc = document.getElementById('previewImg')?.src || '';
+    const previewImgSrc = selectedPhotos[0]?.dataUrl || '';
 
     // 0.00s Optimistic Instant Feedback: Show Live Progress Banner & Pending Card immediately!
     const optimisticId = 'opt_' + Date.now();
@@ -2137,6 +2218,7 @@
       resolution: qual,
       imageCount: batch,
       creditCost: cost,
+      inputImageUrls: selectedPhotos.map(p => p.dataUrl),
       inputImageUrl: previewImgSrc && previewImgSrc.startsWith('data:') ? previewImgSrc : '',
       status: 'waiting_mac_flow',
       progress: 5,
