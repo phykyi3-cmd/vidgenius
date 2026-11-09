@@ -1332,27 +1332,28 @@
 
     <!-- Central Studio Creation Card -->
     <div class="studio-card">
-      <div class="prompt-input-row">
-        <div class="sparkle-prefix">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z"/></svg>
+      <div class="prompt-input-row" id="promptDropZone">
+        <div class="prompt-field-wrap">
+          <div class="sparkle-prefix">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 5.8a2 2 0 001.3 1.3L21 12l-5.8 1.9a2 2 0 00-1.3 1.3L12 21l-1.9-5.8a2 2 0 00-1.3-1.3L3 12l5.8-1.9a2 2 0 001.3-1.3L12 3z"/></svg>
+          </div>
+
+          <textarea
+            id="promptInput"
+            class="prompt-textarea"
+            placeholder="ဇာတ်လမ်း / Plot စာသား အရှည်ကြီးများကို ဤနေရာတွင် စိတ်ကြိုက် ရေးသား/Paste ချနိုင်ပါသည်... (or attach up to 4 reference photos)"
+            rows="2"
+            oninput="autoExpandPrompt(this)"
+            onpaste="setTimeout(() => autoExpandPrompt(this), 20)"
+          ></textarea>
         </div>
 
-        <textarea
-          id="promptInput"
-          class="prompt-textarea"
-          placeholder="Tell us what you want to create... (or attach a photo)"
-          rows="2"
-        ></textarea>
-
-        <div class="ref-photo-box">
-          <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="onPhotoSelected(event)" />
-          <div class="ref-thumb-chip" id="refThumbChip">
-            <img id="previewImg" src="" alt="Ref" />
-            <button class="ref-remove-btn" onclick="clearPhoto()" title="Remove photo">✕</button>
-          </div>
-          <button class="btn-upload-ref" onclick="document.getElementById('fileInput').click()">
+        <div class="ref-photos-wrap">
+          <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="onPhotoSelected(event)" />
+          <div id="refPhotosContainer" style="display:contents;"></div>
+          <button class="btn-upload-ref" id="btnUploadRef" onclick="document.getElementById('fileInput').click()" title="Reference Photo ထည့်သွင်းရန် (အများဆုံး ၄ ပုံအထိ)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-            <span>+ Photo</span>
+            <span id="btnUploadRefText">+ Photo</span>
           </button>
         </div>
       </div>
