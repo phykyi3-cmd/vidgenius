@@ -3198,6 +3198,30 @@
     }
   }
 
+  // Drag and drop reference photos onto prompt area
+  const dropZone = document.getElementById('promptDropZone');
+  if (dropZone) {
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.style.background = 'rgba(245, 243, 255, 0.7)';
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.style.background = 'transparent';
+      }, false);
+    });
+    dropZone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt ? dt.files : null;
+      if (files && files.length) {
+        onPhotoSelected({ target: { files } });
+      }
+    });
+  }
+
   // Keyboard shortcut: Pressing Escape stops and closes any playing video/audio
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
